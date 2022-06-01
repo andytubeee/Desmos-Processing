@@ -1,12 +1,3 @@
-Axis axis;
-
-public Axis getAxis() {
-  if (axis == null) {
-    axis = new Axis();
-  }
-  return axis;
-}
-
 class Axis {
   int xStart, xEnd, yStart, yEnd;
   private int xScaleJump = 1, yScaleJump = 1;
