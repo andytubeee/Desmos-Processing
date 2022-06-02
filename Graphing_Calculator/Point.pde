@@ -1,17 +1,35 @@
+public void drawAllPoints() {
+  for (Point p : points) {
+    p.drawPoint();
+  }
+}
+
 class Point {
   float x, y;
-  double id;
-  public Point(float x, float y, double id) {
+  private float screenX, screenY; 
+  private int xStart = axis.xStart, xEnd = axis.xEnd, yStart =axis.yStart, yEnd = axis.yEnd;
+  public String id;
+  boolean drawn = false;
+  public Point(float x, float y, String id) {
     this.x = x;
     this.y = y;
     this.id = id;
+
+    this.screenX = map(x, xStart, xEnd, 0, width);
+    this.screenY = map(y, yStart, yEnd, 0, height);
   }
   public void drawPoint() {
-    int xStart = axis.xStart, xEnd = axis.xEnd, yStart =axis.yStart, yEnd = axis.yEnd;
-    float fakeX = map(x, xStart, xEnd, 0, width);
-    float fakeY = map(y, yStart, yEnd, 0, height);
-    fill(255);
+    fill(0);
     noStroke();
-    circle(fakeX, height - fakeY, 5);
+    circle(screenX, height - screenY, 5);
+
+    drawn = true;
+  }
+  public void undraw() {
+    
+    drawn = false;
+    fill(bg);
+    noStroke();
+    circle(screenX, height - screenY, 6);
   }
 }

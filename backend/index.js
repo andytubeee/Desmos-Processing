@@ -1,6 +1,7 @@
 const port = 8000;
 const websocketServer = require('websocket').server;
 const http = require('http');
+const fs = require('fs');
 
 const server = http.createServer();
 const clients = {};
@@ -11,21 +12,36 @@ const wsServer = new websocketServer({
   httpServer: server,
 });
 
+fs.writeFile('data.txt', '', (err) => {
+  if (err) throw err;
+});
 wsServer.on('request', (request) => {
-  console.log(
-    new Date() +
-      ' received a new connection from origin ' +
-      request.origin +
-      '.'
-  );
   const connection = request.accept(null, request.origin);
   clients[Object.keys(clients).length] = connection;
   connection.on('message', (message) => {
     if (message.type === 'utf8') {
-      console.log(message.utf8Data);
+      const resData = JSON.parse(message.utf8Data);
       for (key in clients) {
         clients[key].sendUTF(message.utf8Data);
-        console.log('Sent message to: ', clients[key]);
+      }
+      if (resData.save) {
+        if (resData.action === 'PLOT') {
+          fs.appendFile('data.txt', resData.data + '\n', (err) => {
+            if (err) {
+              console.error(err);
+            }
+          });
+        } else if (resData.action === 'DELETE') {
+          // Delete resData.data from data.txt
+          fs.readFile('data.txt', 'utf8', (err, data) => {
+            if (err) throw err;
+            const lines = data.split('\n');
+            const newData = lines.filter((line) => line !== resData.data);
+            fs.writeFile('data.txt', newData.join('\n'), (err) => {
+              if (err) throw err;
+            });
+          });
+        }
       }
     }
   });
@@ -33,4 +49,10 @@ wsServer.on('request', (request) => {
 
 wsServer.on('error', (error) => {
   console.error;
+});
+
+process.on('SIGINT' || 'exit' || 'SIGUSR1' || 'SIGUSR2', () => {
+  fs.unlink('data.txt', (err) => {
+    process.exit();
+  });
 });

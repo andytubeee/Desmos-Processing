@@ -1,5 +1,5 @@
 class Function {
-  String function;
+  String function, id;
   color c;
   private color[] hexcodes = new color[] {#32a852, #20e8ca, #592ff5, #fa0a4a, #f5f0f1};
 
@@ -9,6 +9,10 @@ class Function {
   }
   public Function(String func) {
     this.function = func;
+  }
+  public void setId(String id) {
+    if (id.length()>0) throw new Error("Cannot re-set ID");
+    this.id=id;
   }
   private color useColour() {
     return this.c == 0 ? hexcodes[(int)random(hexcodes.length-1)] : c;

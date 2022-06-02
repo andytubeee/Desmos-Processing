@@ -25,7 +25,7 @@ class Axis {
       return;
     }
 
-    background(100);
+    background(255);
     stroke(0);  
     strokeWeight(1);
     drawXAxis();
@@ -64,6 +64,7 @@ class Axis {
       textX = 0;
       textY = 5;
     }
+    fill(80);
 
     for (int i = xStart; i <= xEnd; i+=xScaleJump) {
       text(i, textX, textY);
@@ -80,8 +81,8 @@ class Axis {
     float textX, textY;
     if (xStart < 0 && xEnd > 0) {
       line(abs(xStart)*xScale, 0, abs(xStart)*xScale, height);
-      textX = abs(xStart)*xScale - 10;
-      textY = height - 10;
+      textX = abs(xStart)*xScale - 20;
+      textY = height;
     } else if (xStart >= 0) {
       // Axis on the left side
       line(10, 0, 10, height);
@@ -93,9 +94,11 @@ class Axis {
       textX = width-15;
       textY = height - 10;
     }
+    fill(80);
 
     for (int i = yStart; i <= yEnd; i+=yScaleJump) {
       text(i, textX, textY);
+      if (i == -1) textX += 10;
       if (i == yEnd-1)
         textY -= yScale * yScaleJump - (0.05 * yScale);
       else
