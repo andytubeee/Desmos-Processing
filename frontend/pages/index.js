@@ -8,10 +8,10 @@ import Swal from 'sweetalert2';
 
 const client = new w3cwebsocket('ws://localhost:8000');
 
-const PointControl = ({ setPoints, id }) => {
-  const [xVal, setXVal] = useState();
-  const [yVal, setYVal] = useState();
-  const [plotted, setPlotted] = useState(false);
+const PointControl = ({ setPoints, id, x, y }) => {
+  const [xVal, setXVal] = useState(x);
+  const [yVal, setYVal] = useState(y);
+  const [plotted, setPlotted] = useState(x && y);
   const sendPoint = (task) => {
     if (plotted && task === 'PLOT') return;
     if ((isNaN(xVal) || isNaN(yVal)) && task === 'PLOT') {
@@ -25,7 +25,7 @@ const PointControl = ({ setPoints, id }) => {
 
     if (task == 'DELETE') {
       // Remove the component
-      setPoints((points) => points.filter((point) => point !== id));
+      setPoints((points) => points.filter((pointId) => pointId.id !== id));
     }
 
     client.send(
@@ -46,11 +46,13 @@ const PointControl = ({ setPoints, id }) => {
           placeholder='X'
           className='border rounded mr-3 pl-2 w-1/2'
           onChange={(e) => setXVal(e.target.value)}
+          defaultValue={x}
         />
         <input
           placeholder='Y'
           className='border rounded pl-2 w-1/2'
           onChange={(e) => setYVal(e.target.value)}
+          defaultValue={y}
         />
       </div>
       <div className='flex gap-4 mt-3 justify-end'>
@@ -111,7 +113,19 @@ export default function Home() {
     client.onopen = () => {
       console.log('WebSocket Client Connected');
     };
-    client.onmessage = (message) => {};
+    client.onmessage = (message) => {
+      const existingData = JSON.parse(message.data)['data'].split('\n');
+      for (const data of existingData) {
+        const parts = data.split(' ');
+        // console.log(parts);
+        if (parts[0] === 'POINT') {
+          setPoints((points) => [
+            ...points,
+            { id: parts[3], x: parts[1], y: parts[2] },
+          ]);
+        }
+      }
+    };
   }, []);
   const [points, setPoints] = useState([]);
   const [functions, setFunctions] = useState([]);
@@ -122,12 +136,17 @@ export default function Home() {
         <div>
           <button
             className='rounded text-white bg-orange-300 p-3'
-            onClick={() => setPoints((points) => [...points, uuidv4()])}
+            onClick={() => setPoints((points) => [...points, { id: uuidv4() }])}
           >
             Add Point
           </button>
-          {points.map((id, i) => (
-            <PointControl setPoints={setPoints} id={id} />
+          {points.map((point, i) => (
+            <PointControl
+              setPoints={setPoints}
+              id={point.id}
+              x={point.x || null}
+              y={point.y || null}
+            />
           ))}
         </div>
         <div>

@@ -5,6 +5,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import com.google.gson.*;
+import org.json.*;
+
 
 WebsocketClient wsc;
 Axis axis = new Axis();
@@ -42,18 +44,33 @@ void setup() {
 }
 
 void webSocketEvent(String msg) {
-  onCommand.data.push(msg);
-  onCommand.fire();
-}
-
-void loadData() {
+  Gson gson = new Gson(); 
+  Map<String, Object> dataObj = new HashMap<String, Object>();
+  dataObj = (Map<String, Object>) gson.fromJson(msg, dataObj.getClass());
+  if (dataObj.get("action").equals("LOAD")) {
+    String[] programData = dataObj.get("data").toString().split("\n");
+    for (String data : programData) {
+      String[] parts = data.split(" ");
+      String object = parts[0];
+      if (object.equals("POINT")) {
+      }
+    }
+    println(msg);
+    // Load data
+  } else {
+    onCommand.data.push(msg);
+    onCommand.fire();
+  }
 }
 
 public static boolean isAvailable(int portNr) {
   boolean portFree;
+  ServerSocket ignored;
+
   try {
-    ServerSocket ignored = new ServerSocket(portNr);
+    ignored = new ServerSocket(portNr);
     portFree = false;
+    ignored.close();
   } 
   catch(IOException e) {
     portFree = true;
@@ -83,14 +100,15 @@ void clearScreen() {
 
 
 void draw() {
-
   if (onCommand.fired()) {
     if (onCommand.data.size() > 0) {
       String data = onCommand.data.firstElement();
+      println(data);
       Gson gson = new Gson(); 
       Map<String, Object> dataObj = new HashMap<String, Object>();
       dataObj = (Map<String, Object>) gson.fromJson(data, dataObj.getClass());
       String action = dataObj.get("action").toString();
+      //String action = "";
       if (action.equals("ZOOMIN")) {
         axis.zoomIn();
       } else if (action.equals("ZOOMOUT")) {
