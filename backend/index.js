@@ -19,14 +19,14 @@ wsServer.on('request', (request) => {
   const connection = request.accept(null, request.origin);
   // const portNum = Number(request.origin.split(':').at(-1));
 
-  clients[request.origin] = connection;
+  clients[request.origin || 'PROCESSING'] = connection;
 
   connection.on('message', (message) => {
     if (message.type === 'utf8') {
       const resData = JSON.parse(message.utf8Data);
-      // for (key in clients) {
-      //   clients[key].sendUTF(message.utf8Data);
-      // }
+      for (key in clients) {
+        clients[key].sendUTF(message.utf8Data);
+      }
       if (resData.save) {
         if (resData.action === 'PLOT') {
           fs.appendFile(

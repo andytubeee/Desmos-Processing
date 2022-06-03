@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "autoprefixer": "^10.4.7",
+    "is-port-reachable": "^4.0.0",
     "next": "12.1.6",
     "postcss": "^8.4.14",
     "react": "18.1.0",

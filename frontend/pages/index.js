@@ -4,6 +4,7 @@ import styles from '../styles/Home.module.css';
 import { w3cwebsocket } from 'websocket';
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import isPortReachable from 'is-port-reachable';
 import Swal from 'sweetalert2';
 
 const client = new w3cwebsocket('ws://localhost:8000');
@@ -74,6 +75,7 @@ const PointControl = ({ setPoints, id, x, y }) => {
     </div>
   );
 };
+
 const Settings = () => {
   return (
     <div>
@@ -108,27 +110,18 @@ const Settings = () => {
     </div>
   );
 };
-export default function Home() {
-  useEffect(() => {
-    client.onopen = () => {
-      console.log('WebSocket Client Connected');
-    };
-    client.onmessage = (message) => {
-      const existingData = JSON.parse(message.data)['data'].split('\n');
-      for (const data of existingData) {
-        const parts = data.split(' ');
-        // console.log(parts);
-        if (parts[0] === 'POINT') {
-          setPoints((points) => [
-            ...points,
-            { id: parts[3], x: parts[1], y: parts[2] },
-          ]);
-        }
-      }
-    };
-  }, []);
-  const [points, setPoints] = useState([]);
+export default function Home({ points: prevPoints, connected }) {
+  useEffect(() => {}, []);
+  const [points, setPoints] = useState(prevPoints);
   const [functions, setFunctions] = useState([]);
+  if (!connected)
+    return (
+      <>
+        <div>
+          <h1>Websocket not connected</h1>
+        </div>
+      </>
+    );
   return (
     <div className='p-3'>
       <Settings />
@@ -157,4 +150,28 @@ export default function Home() {
       </div>
     </div>
   );
+}
+
+export async function getServerSideProps() {
+  // Fetch data from external API
+  if (!(await isPortReachable(8000, { host: 'localhost' }))) {
+    return { props: { connected: false } };
+  }
+  const points = [];
+
+  const client = new w3cwebsocket('ws://localhost:8000');
+
+  client.onopen = async (message) => {
+    console.log('WebSocket Client Connected');
+  };
+  client.onmessage = async (message) => {
+    const existingData = JSON.parse(message.data)['data'].split('\n');
+    for (const data of existingData) {
+      const parts = data.split(' ');
+      if (parts[0] === 'POINT') {
+        points.push({ id: parts[3], x: parts[1], y: parts[2] });
+      }
+    }
+  };
+  return { props: { points, connected: true } };
 }

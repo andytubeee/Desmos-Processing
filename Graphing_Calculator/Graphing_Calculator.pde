@@ -1,11 +1,9 @@
-import g4p_controls.*;
 import net.objecthunter.exp4j.*;
 import websockets.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import com.google.gson.*;
-import org.json.*;
 
 
 WebsocketClient wsc;
@@ -35,12 +33,7 @@ void setup() {
     axis.setParameters(-10, 10, -10, 10);
     axis.drawAxis();
   }
-
-  //functions.add(new Function("3sin(x)", color(0,0,0)));
-  //functions.add(new Function("2sin(x^2)", color(125,255,1)));
-
-  //functions.get(0).graph();
-  //functions.get(1).graph();
+  Function f = new Function("sin(1/x)");
 }
 
 void webSocketEvent(String msg) {
@@ -48,15 +41,20 @@ void webSocketEvent(String msg) {
   Map<String, Object> dataObj = new HashMap<String, Object>();
   dataObj = (Map<String, Object>) gson.fromJson(msg, dataObj.getClass());
   if (dataObj.get("action").equals("LOAD")) {
+    // Load data
     String[] programData = dataObj.get("data").toString().split("\n");
     for (String data : programData) {
       String[] parts = data.split(" ");
       String object = parts[0];
       if (object.equals("POINT")) {
+        Float x = Float.parseFloat(parts[1]);
+        Float y = Float.parseFloat(parts[2]);
+        String id = parts[3];
+        Point p = new Point(x, y, id);
+        p.drawPoint();
+        points.add(p);
       }
     }
-    println(msg);
-    // Load data
   } else {
     onCommand.data.push(msg);
     onCommand.fire();
@@ -92,6 +90,9 @@ void keyPressed() {
   } else if (key == 'x' || key == 'X') {
     axis.zoomOut();
   }
+  for (Function f : functions) {
+    f.graph();
+  }
 }
 
 void clearScreen() {
@@ -108,7 +109,7 @@ void draw() {
       Map<String, Object> dataObj = new HashMap<String, Object>();
       dataObj = (Map<String, Object>) gson.fromJson(data, dataObj.getClass());
       String action = dataObj.get("action").toString();
-      //String action = "";
+      println(data);
       if (action.equals("ZOOMIN")) {
         axis.zoomIn();
       } else if (action.equals("ZOOMOUT")) {

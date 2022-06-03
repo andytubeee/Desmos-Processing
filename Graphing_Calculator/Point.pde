@@ -26,7 +26,6 @@ class Point {
     drawn = true;
   }
   public void undraw() {
-    
     drawn = false;
     fill(bg);
     noStroke();

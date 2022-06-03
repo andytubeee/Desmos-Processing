@@ -5,6 +5,7 @@ class ErrorMessage {
     this.msg = msg;
   }
   public void display() {
+    background(bg);
     fill(255, 0, 0);
     textSize(30);
     text(msg, 0, height/2);
