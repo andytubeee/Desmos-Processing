@@ -108,7 +108,7 @@ void draw() {
     }
   }
 
-  for (Iterator<Point> iterator = points.iterator(); iterator.hasNext(); ) {
+  for (Iterator<Point> iterator = points.iterator(); iterator.hasNext();) {
     Point p = iterator.next();
     boolean exists = false;
     for (Point p_c : incomingPoints) {
@@ -122,10 +122,8 @@ void draw() {
       iterator.remove();
     }
   }
-
-
-
-
+  
+  
 
   //if (onCommand.fired()) {
   //  if (onCommand.data.size() > 0) {
