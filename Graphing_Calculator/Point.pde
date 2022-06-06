@@ -6,7 +6,7 @@ public void drawAllPoints() {
 
 class Point {
   float x, y;
-  private float screenX, screenY; 
+  private float screenX, screenY;
   private int xStart = axis.xStart, xEnd = axis.xEnd, yStart =axis.yStart, yEnd = axis.yEnd;
   public String id;
   boolean drawn = false;
@@ -30,5 +30,15 @@ class Point {
     fill(bg);
     noStroke();
     circle(screenX, height - screenY, 6);
+
+    //for (Iterator<Point> iterator = points.iterator(); iterator.hasNext();) {
+    //Point p = iterator.next();
+    //if(p.id.equals(this.id)) {
+    //    iterator.remove();
+    //}
+    //}
+  }
+  public boolean equals(Point p) {
+    return this.id.equals(p.id);
   }
 }

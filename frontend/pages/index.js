@@ -1,80 +1,12 @@
-import Head from 'next/head';
-import Image from 'next/image';
-import styles from '../styles/Home.module.css';
 import { w3cwebsocket } from 'websocket';
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import isPortReachable from 'is-port-reachable';
 import Swal from 'sweetalert2';
+import Axios from 'axios';
+import absoluteUrl from 'next-absolute-url';
+import { PointControl } from '../components/PointControl';
 
 const client = new w3cwebsocket('ws://localhost:8000');
-
-const PointControl = ({ setPoints, id, x, y }) => {
-  const [xVal, setXVal] = useState(x);
-  const [yVal, setYVal] = useState(y);
-  const [plotted, setPlotted] = useState(x && y);
-  const sendPoint = (task) => {
-    if (plotted && task === 'PLOT') return;
-    if ((isNaN(xVal) || isNaN(yVal)) && task === 'PLOT') {
-      return Swal.fire({
-        title: 'Error',
-        text: 'Please enter a valid number',
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
-    }
-
-    if (task == 'DELETE') {
-      // Remove the component
-      setPoints((points) => points.filter((pointId) => pointId.id !== id));
-    }
-
-    client.send(
-      JSON.stringify({
-        object: 'POINT',
-        action: task,
-        data: task === 'PLOT' && `${xVal} ${yVal}`,
-        id,
-        save: true,
-      })
-    );
-    setPlotted(task === 'PLOT');
-  };
-  return (
-    <div className='my-2 w-[250px]'>
-      <div className='flex justify-between'>
-        <input
-          placeholder='X'
-          className='border rounded mr-3 pl-2 w-1/2'
-          onChange={(e) => setXVal(e.target.value)}
-          defaultValue={x}
-        />
-        <input
-          placeholder='Y'
-          className='border rounded pl-2 w-1/2'
-          onChange={(e) => setYVal(e.target.value)}
-          defaultValue={y}
-        />
-      </div>
-      <div className='flex gap-4 mt-3 justify-end'>
-        <button
-          className={`rounded  text-white px-3 ${
-            !plotted ? 'bg-blue-300' : 'bg-slate-500 cursor-not-allowed'
-          }`}
-          onClick={() => sendPoint('PLOT')}
-        >
-          {!plotted ? 'Plot' : 'Plotted'}
-        </button>
-        <button
-          className='rounded bg-red-500 text-white px-3'
-          onClick={() => sendPoint('DELETE')}
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const Settings = () => {
   return (
@@ -110,15 +42,17 @@ const Settings = () => {
     </div>
   );
 };
-export default function Home({ points: prevPoints, connected }) {
-  useEffect(() => {}, []);
-  const [points, setPoints] = useState(prevPoints);
-  const [functions, setFunctions] = useState([]);
+export default function Home({ data, connected }) {
+  const [points, setPoints] = useState(data?.points);
+  const [functions, setFunctions] = useState(data?.functions);
+
   if (!connected)
     return (
       <>
         <div>
-          <h1>Websocket not connected</h1>
+          <h1 className='m-3 text-center text-xl text-red-700'>
+            Websocket not connected
+          </h1>
         </div>
       </>
     );
@@ -135,7 +69,9 @@ export default function Home({ points: prevPoints, connected }) {
           </button>
           {points.map((point, i) => (
             <PointControl
+              key={i}
               setPoints={setPoints}
+              points={points}
               id={point.id}
               x={point.x || null}
               y={point.y || null}
@@ -152,26 +88,17 @@ export default function Home({ points: prevPoints, connected }) {
   );
 }
 
-export async function getServerSideProps() {
+export async function getServerSideProps({ req }) {
   // Fetch data from external API
-  if (!(await isPortReachable(8000, { host: 'localhost' }))) {
-    return { props: { connected: false } };
-  }
-  const points = [];
+  const { origin } = absoluteUrl(req);
+  const data = await Axios.get(`${origin}/api/fetch`)
+    .then((res) => {
+      return res.data;
+    })
+    .catch((err) => {
+      console.log(err.error);
+      return null;
+    });
 
-  const client = new w3cwebsocket('ws://localhost:8000');
-
-  client.onopen = async (message) => {
-    console.log('WebSocket Client Connected');
-  };
-  client.onmessage = async (message) => {
-    const existingData = JSON.parse(message.data)['data'].split('\n');
-    for (const data of existingData) {
-      const parts = data.split(' ');
-      if (parts[0] === 'POINT') {
-        points.push({ id: parts[3], x: parts[1], y: parts[2] });
-      }
-    }
-  };
-  return { props: { points, connected: true } };
+  return { props: { connected: data !== null, data } };
 }
