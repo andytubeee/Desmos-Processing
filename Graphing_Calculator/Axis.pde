@@ -26,7 +26,7 @@ class Axis {
     }
 
     background(255);
-    stroke(0);  
+    stroke(0);
     strokeWeight(1);
     drawXAxis();
     drawYAxis();
@@ -35,12 +35,12 @@ class Axis {
   public void setXScale(int s) {
     this.xScaleJump = s;
     this.drawAxis();
-  } 
+  }
 
   public void setYScale(int s) {
     this.yScaleJump = s;
     this.drawAxis();
-  } 
+  }
 
   private void drawXAxis() {
     int xScale = width / (xEnd - xStart);
@@ -81,7 +81,7 @@ class Axis {
     float textX, textY;
     if (xStart < 0 && xEnd > 0) {
       line(abs(xStart)*xScale, 0, abs(xStart)*xScale, height);
-      textX = abs(xStart)*xScale - 20;
+      textX = abs(xStart)*xScale-10;
       textY = height;
     } else if (xStart >= 0) {
       // Axis on the left side
@@ -97,8 +97,14 @@ class Axis {
     fill(80);
 
     for (int i = yStart; i <= yEnd; i+=yScaleJump) {
+      textX = abs(xStart)*xScale-10;
+
+      if (str(i).length() >= 3) {
+        println(i);
+        textX -= 10;
+      }
       text(i, textX, textY);
-      if (i == -1) textX += 10;
+
       if (i == yEnd-1)
         textY -= yScale * yScaleJump - (0.05 * yScale);
       else
@@ -106,15 +112,24 @@ class Axis {
     }
   }
 
+  private void onMove() {
+    for (Point p : points) {
+      p.drawPoint();
+    }
+  }
+
   public void moveDown() {
     yStart += 1;
     yEnd += 1;
     drawAxis();
+
+    onMove();
   }
   public void moveUp() {
     yStart -= 1;
     yEnd -= 1;
     drawAxis();
+    onMove();
   }
 
   public void moveLeft() {
@@ -122,12 +137,14 @@ class Axis {
     xEnd -= 1;
 
     drawAxis();
+    onMove();
   }
 
   public void moveRight() {
     xStart += 1;
     xEnd += 1;
     drawAxis();
+    onMove();
   }
 
   public void zoomIn() {
@@ -141,6 +158,7 @@ class Axis {
     }
 
     drawAxis();
+    onMove();
   }
   public void zoomOut() {
     xStart -= xScaleJump;
@@ -148,5 +166,6 @@ class Axis {
     yStart -= yScaleJump;
     yEnd += yScaleJump;
     drawAxis();
+    onMove();
   }
 }

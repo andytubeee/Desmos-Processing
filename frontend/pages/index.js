@@ -88,8 +88,12 @@ export default function Home({ data, connected }) {
           >
             Add Function
           </button>
-          {functions.map((function_, i) => (
-            <FunctionControl setFunctions={setFunctions} />
+          {functions.map((f, i) => (
+            <FunctionControl
+              setFunctions={setFunctions}
+              allFunctions={functions}
+              preDefFunc={f?.function || null}
+            />
           ))}
         </div>
       </div>
