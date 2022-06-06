@@ -79,6 +79,7 @@ void keyPressed() {
   for (Function f : functions) {
     f.graph();
   }
+  wsc.sendMessage("Hello");
 }
 
 void clearScreen() {

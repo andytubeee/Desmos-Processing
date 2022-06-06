@@ -19,6 +19,7 @@ wsServer.on('request', (request) => {
 
   connection.on('message', (message) => {
     if (message.type === 'utf8') {
+      console.log(message.utf8Data);
       for (key in clients) {
         clients[key].sendUTF(message.utf8Data);
       }

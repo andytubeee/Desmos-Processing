@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import Axios from 'axios';
 import absoluteUrl from 'next-absolute-url';
 import { PointControl } from '../components/PointControl';
+import FunctionControl from '../components/FunctionControl';
 
 const client = new w3cwebsocket('ws://localhost:8000');
 
@@ -44,7 +45,7 @@ const Settings = () => {
 };
 export default function Home({ data, connected }) {
   const [points, setPoints] = useState(data?.points);
-  const [functions, setFunctions] = useState(data?.functions);
+  const [functions, setFunctions] = useState([]);
 
   if (!connected)
     return (
@@ -79,9 +80,17 @@ export default function Home({ data, connected }) {
           ))}
         </div>
         <div>
-          <button className='rounded text-white bg-blue-300 p-3'>
+          <button
+            className='rounded text-white bg-blue-300 p-3'
+            onClick={() =>
+              setFunctions((functions) => [...functions, { id: uuidv4() }])
+            }
+          >
             Add Function
           </button>
+          {functions.map((function_, i) => (
+            <FunctionControl setFunctions={setFunctions} />
+          ))}
         </div>
       </div>
     </div>
