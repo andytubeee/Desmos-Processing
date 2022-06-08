@@ -14,8 +14,15 @@ class Point {
     this.x = x;
     this.y = y;
     this.id = id;
-
+    //addPointToCollection(); // Causes bug
     updateAxisInfo();
+  }
+
+  private void addPointToCollection() {
+    for (Point p : points) {
+      if (p.id.equals(this.id)) return;
+    }
+    points.add(this);
   }
 
   private void updateAxisInfo() {

@@ -100,7 +100,6 @@ class Axis {
       textX = abs(xStart)*xScale-10;
 
       if (str(i).length() >= 3) {
-        println(i);
         textX -= 10;
       }
       text(i, textX, textY);

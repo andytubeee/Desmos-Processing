@@ -45,14 +45,16 @@ const Settings = () => {
 };
 export default function Home({ data, connected }) {
   const [points, setPoints] = useState(data?.points);
-  const [functions, setFunctions] = useState([]);
+  const [functions, setFunctions] = useState(data?.functions);
 
   if (!connected)
     return (
       <>
-        <div>
-          <h1 className='m-3 text-center text-xl text-red-700'>
-            Websocket not connected
+        <div className='min-h-screen flex items-center justify-center'>
+          <h1 className='m-3 text-center text-3xl text-red-700'>
+            <span className='font-bold'>Server Error:</span> Please check the
+            websocket server is running on port <code>8000</code>, and check
+            JSON files.
           </h1>
         </div>
       </>
@@ -60,11 +62,13 @@ export default function Home({ data, connected }) {
   return (
     <div className='p-3'>
       <Settings />
-      <div className='flex justify-between'>
+      <div className='flex justify-between items-start'>
         <div>
           <button
             className='rounded text-white bg-orange-300 p-3'
-            onClick={() => setPoints((points) => [...points, { id: uuidv4() }])}
+            onClick={() => {
+              setPoints((points) => [...points, { id: uuidv4() }]);
+            }}
           >
             Add Point
           </button>
@@ -76,10 +80,11 @@ export default function Home({ data, connected }) {
               id={point.id}
               x={point.x || null}
               y={point.y || null}
+              wsc={client}
             />
           ))}
         </div>
-        <div>
+        <div className='p-3 w-1/2 flex flex-col justify-end items-end'>
           <button
             className='rounded text-white bg-blue-300 p-3'
             onClick={() =>
@@ -90,9 +95,12 @@ export default function Home({ data, connected }) {
           </button>
           {functions.map((f, i) => (
             <FunctionControl
+              key={i}
               setFunctions={setFunctions}
               allFunctions={functions}
               preDefFunc={f?.function || null}
+              id={f.id}
+              wsc={client}
             />
           ))}
         </div>
@@ -104,12 +112,12 @@ export default function Home({ data, connected }) {
 export async function getServerSideProps({ req }) {
   // Fetch data from external API
   const { origin } = absoluteUrl(req);
+
   const data = await Axios.get(`${origin}/api/fetch`)
     .then((res) => {
       return res.data;
     })
     .catch((err) => {
-      console.log(err.error);
       return null;
     });
 

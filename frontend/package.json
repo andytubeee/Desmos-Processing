@@ -12,6 +12,7 @@
     "autoprefixer": "^10.4.7",
     "axios": "^0.27.2",
     "is-port-reachable": "^4.0.0",
+    "mathjs": "^10.6.1",
     "next": "12.1.6",
     "next-absolute-url": "^1.2.2",
     "postcss": "^8.4.14",

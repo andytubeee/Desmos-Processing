@@ -4,6 +4,11 @@ import java.net.*;
 import java.util.*;
 import com.google.gson.*;
 import websockets.*;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 WebsocketClient wsc;
 
 
@@ -22,7 +27,6 @@ final color bg = 255;
 void setup() {
   size(800, 800);
   background(bg);
-
   if (!portAvailable(websocketPort)) {
     new ErrorMessage("Websocket connection not running").display();
   } else if (!portAvailable(webappPort)) {
@@ -41,8 +45,14 @@ void setup() {
     Point[] existingPoints = gson.fromJson(dataObj.get("points").toString(), Point[].class);
     for (Point p : existingPoints) {
       Point p_not_null = new Point(p.x, p.y, p.id);
-      points.add(p_not_null);
       p_not_null.drawPoint();
+      points.add(p_not_null);
+    }
+    Function[] existingFunctions = gson.fromJson(dataObj.get("functions").toString(), Function[].class);
+    for (Function f : existingFunctions) {
+      Function f_nl = new Function(f.function, f.id);
+      f_nl.graph();
+      functions.add(f_nl);
     }
   }
 }
@@ -75,6 +85,8 @@ void keyPressed() {
     axis.zoomIn();
   } else if (key == 'x' || key == 'X') {
     axis.zoomOut();
+  } else if (key == 'f') {
+    fetchComputation();
   }
   for (Function f : functions) {
     f.graph();
@@ -91,76 +103,128 @@ boolean pointInPoints(Point p) {
   }
   return false;
 }
+boolean funcInFunctions(Function f) {
+  for (Function f_c : functions) {
+    if (f_c.id.equals(f.id)) return true;
+  }
+  return false;
+}
 
-void draw() {
-  String[] fetchRes = loadStrings("http://localhost:"+webappPort+"/api/fetch");
-  // Parse response string to a JSON object
+void fetchComputation() {
+  String fetchRes = loadStrings("http://localhost:"+webappPort+"/api/request")[0];
   Map<String, Object> dataObj = new HashMap<String, Object>();
-  dataObj = (Map<String, Object>) gson.fromJson(fetchRes[0], dataObj.getClass());
+  dataObj = (Map<String, Object>) gson.fromJson(fetchRes, dataObj.getClass());
+  String requests = dataObj.get("requests").toString();
+  println(requests);
 
-  Point[] incomingPoints = gson.fromJson(dataObj.get("points").toString(), Point[].class);
-
-  for (Point p : incomingPoints) {
-    Point pnl = new Point(p.x, p.y, p.id);
-    if (!pointInPoints(pnl)) {
-      pnl.drawPoint();
-      points.add(pnl);
-    }
-  }
-
-  for (Iterator<Point> iterator = points.iterator(); iterator.hasNext();) {
-    Point p = iterator.next();
-    boolean exists = false;
-    for (Point p_c : incomingPoints) {
-      if (p.id.equals(p_c.id)) {
-        exists = true;
-        break;
-      }
-    }
-    if (!exists) {
-      p.undraw();
-      iterator.remove();
-    }
-  }
-  
-  
-
-  //if (onCommand.fired()) {
-  //  if (onCommand.data.size() > 0) {
-  //    String data = onCommand.data.firstElement();
-  //    println(data);
-  //    Gson gson = new Gson();
-  //    Map<String, Object> dataObj = new HashMap<String, Object>();
-  //    dataObj = (Map<String, Object>) gson.fromJson(data, dataObj.getClass());
-  //    String action = dataObj.get("action").toString();
-  //    println(data);
-  //    if (action.equals("ZOOMIN")) {
-  //      axis.zoomIn();
-  //    } else if (action.equals("ZOOMOUT")) {
-  //      axis.zoomOut();
-  //    } else if (action.equals("PLOT")) {
-  //      String object = dataObj.get("object").toString();
-  //      switch(object) {
-  //      case "POINT":
-  //        String actionData = dataObj.get("data").toString();
-  //        float xVal = Float.parseFloat(actionData.split(" ")[0]);
-  //        float yVal = Float.parseFloat(actionData.split(" ")[1]);
-  //        String id = dataObj.get("id").toString();
-  //        Point p = new Point(xVal, yVal, id);
-  //        p.drawPoint();
-  //        points.add(p);
-  //        break;
-  //      }
-  //    } else if (action.equals("DELETE")) {
-  //      String id = dataObj.get("id").toString();
-  //      for (Point p : points) {
-  //        if (p.id.equals(id) && p.drawn == true) {
-  //          p.undraw();
-  //        }
-  //      }
+  //String task = dataObj.get("task").toString();
+  //if (task == "COMPUTE") {
+  //  float value = (float)dataObj.get("val");
+  //  String functionId = dataObj.get("functionId").toString();
+  //  for (Function f : functions) {
+  //    if (f.id.equals(functionId)) {
+  //      float returnVal = f.compute(value);
+  //      println(returnVal);
+  //      break;
+  //      //wsc.send(returnVal);
   //    }
   //  }
-  //  onCommand.data.pop();
-  //  onCommand.finishEvent();
   //}
 }
+
+void draw() {
+  try {
+    String[] fetchRes = loadStrings("http://localhost:"+webappPort+"/api/fetch");
+    // Parse response string to a JSON object
+    Map<String, Object> dataObj = new HashMap<String, Object>();
+    dataObj = (Map<String, Object>) gson.fromJson(fetchRes[0], dataObj.getClass());
+
+    Point[] incomingPoints = gson.fromJson(dataObj.get("points").toString(), Point[].class);
+    Function[] incomingFunctions = gson.fromJson(dataObj.get("functions").toString(), Function[].class);
+
+    // Handle points
+    for (Point p : incomingPoints) {
+      Point pnl = new Point(p.x, p.y, p.id);
+      if (!pointInPoints(pnl)) {
+        pnl.drawPoint();
+        points.add(pnl);
+      }
+    }
+
+    for (Iterator<Point> iterator = points.iterator(); iterator.hasNext(); ) {
+      Point p = iterator.next();
+      boolean exists = false;
+      for (Point p_c : incomingPoints) {
+        if (p.id.equals(p_c.id)) {
+          exists = true;
+          break;
+        }
+      }
+      if (!exists) {
+        p.undraw();
+        iterator.remove();
+      }
+    }
+    // Handle functions
+    for (Function f : incomingFunctions) {
+      Function fnl = new Function(f.function, f.id);
+      if (!funcInFunctions(fnl)) {
+        functions.add(fnl);
+        fnl.graph();
+      }
+    }
+
+    for (Iterator<Function> iterator = functions.iterator(); iterator.hasNext(); ) {
+      Function f = iterator.next();
+      boolean exists = false;
+      for (Function fc : incomingFunctions) {
+        if (fc.id.equals(f.id)) {
+          exists = true;
+          break;
+        }
+      }
+      if (!exists) {
+        f.destroyGraph();
+        iterator.remove();
+      }
+    }
+  } catch (Error er) {}
+}
+
+//if (onCommand.fired()) {
+//  if (onCommand.data.size() > 0) {
+//    String data = onCommand.data.firstElement();
+//    println(data);
+//    Gson gson = new Gson();
+//    Map<String, Object> dataObj = new HashMap<String, Object>();
+//    dataObj = (Map<String, Object>) gson.fromJson(data, dataObj.getClass());
+//    String action = dataObj.get("action").toString();
+//    println(data);
+//    if (action.equals("ZOOMIN")) {
+//      axis.zoomIn();
+//    } else if (action.equals("ZOOMOUT")) {
+//      axis.zoomOut();
+//    } else if (action.equals("PLOT")) {
+//      String object = dataObj.get("object").toString();
+//      switch(object) {
+//      case "POINT":
+//        String actionData = dataObj.get("data").toString();
+//        float xVal = Float.parseFloat(actionData.split(" ")[0]);
+//        float yVal = Float.parseFloat(actionData.split(" ")[1]);
+//        String id = dataObj.get("id").toString();
+//        Point p = new Point(xVal, yVal, id);
+//        p.drawPoint();
+//        break;
+//      }
+//    } else if (action.equals("DELETE")) {
+//      String id = dataObj.get("id").toString();
+//      for (Point p : points) {
+//        if (p.id.equals(id) && p.drawn == true) {
+//          p.undraw();
+//        }
+//      }
+//    }
+//  }
+//  onCommand.data.pop();
+//  onCommand.finishEvent();
+//}

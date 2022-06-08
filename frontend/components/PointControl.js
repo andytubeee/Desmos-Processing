@@ -30,7 +30,6 @@ export const PointControl = ({ points, setPoints, id, x, y }) => {
           // Remove the component
           const prevPoints = [...points];
           setPoints(prevPoints.filter((point) => point.id !== id));
-          // setPoints(prevPoints.filter((point) => point.id !== id));
         } else if (task === 'PLOT') {
           setPoints((points) =>
             points.map((point) =>

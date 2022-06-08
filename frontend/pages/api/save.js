@@ -8,64 +8,79 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Server not running' });
     return;
   }
-  const client = await new w3cwebsocket('ws://127.0.0.1:8000');
+  const client = await new w3cwebsocket('ws://localhost:8000');
   const { body } = req;
   const { object, task } = body;
   let curPoints = fs.readFileSync('data/points.json', (err, data) => {
-    if (err) res.status(500).end();
+    if (err) res.status(500).json({ error: 'File reading error' }).end();
     return data;
   });
   let curFunctions = fs.readFileSync('data/functions.json', (err, data) => {
-    if (err) res.status(500).end();
+    if (err) res.status(500).json({ error: 'File reading error' }).end();
     return data;
   });
   curPoints = JSON.parse(curPoints.toString()) || [];
-  curFunctions = JSON.parse(curFunctions.toString());
+  curFunctions = JSON.parse(curFunctions.toString()) || [];
 
-  
-  client.onopen = () => {
-    if (task === 'PLOT') {
-      if (object === 'POINT') {
-        const exists = curPoints.find((point) => point.id === body.id);
-        if (!exists) {
-          // Add point
-          fs.writeFileSync(
-            'data/points.json',
-            JSON.stringify([
-              ...curPoints,
-              { x: +body.x, y: +body.y, id: body.id },
-            ])
-          );
-          client.send(
-            JSON.stringify({
-              action: 'PLOT',
-              object: 'POINT',
-              x: +body.x,
-              y: +body.y,
-              id: body.id,
+  if (task === 'PLOT') {
+    if (object === 'POINT') {
+      const exists = curPoints.find((point) => point.id === body.id);
+      if (!exists) {
+        // Add point
+        fs.writeFileSync(
+          'data/points.json',
+          JSON.stringify([
+            ...curPoints,
+            { x: +body.x, y: +body.y, id: body.id },
+          ])
+        );
+      } else {
+        // Update point object
+        fs.writeFileSync(
+          'data/points.json',
+          JSON.stringify(
+            curPoints.map((point) => {
+              if (point.id === body.id)
+                return { x: +body.x, y: +body.y, id: body.id };
+              return point;
             })
-          );
-        } else {
-          // Update point object
-          fs.writeFileSync(
-            'data/points.json',
-            JSON.stringify(
-              curPoints.map((point) => {
-                if (point.id === body.id)
-                  return { x: +body.x, y: +body.y, id: body.id };
-                return point;
-              })
-            )
-          );
-        }
+          )
+        );
       }
-    } else if (task === 'DELETE') {
-      if (object === 'POINT') {
-        curPoints = curPoints.filter((point) => point.id !== body.id);
-        fs.writeFileSync('data/points.json', JSON.stringify(curPoints));
+    } else if (object === 'FUNCTION') {
+      const exists = curFunctions.find((f) => f.id === body.id);
+      if (!exists) {
+        // Add function to data/functions.json
+        fs.writeFileSync(
+          'data/functions.json',
+          JSON.stringify([
+            ...curFunctions,
+            { function: body.function, id: body.id },
+          ])
+        );
+      } else {
+        // Update the function with the given id.
+        fs.writeFileSync(
+          'data/functions.json',
+          JSON.stringify(
+            curFunctions.map((f) => {
+              if (f.id === body.id)
+                return { function: body.function, id: body.id };
+              return f;
+            })
+          )
+        );
       }
     }
-  };
+  } else if (task === 'DELETE') {
+    if (object === 'POINT') {
+      curPoints = curPoints.filter((point) => point.id !== body.id);
+      fs.writeFileSync('data/points.json', JSON.stringify(curPoints));
+    } else if (object === 'FUNCTION') {
+      curFunctions = curFunctions.filter((f) => f.id !== body.id);
+      fs.writeFileSync('data/functions.json', JSON.stringify(curFunctions));
+    }
+  }
 
   res.status(200).json({ success: true });
 

@@ -9,18 +9,21 @@ class Function {
   public Function(String func, color c) {
     this.function = func;
     this.c = c;
-
-    functions.add(this);
   }
   public Function(String func) {
     this.function = func;
     this.c = useColour();
-
-    functions.add(this);
   }
-  public void setId(String id) {
-    if (id.length()>0) throw new Error("Cannot re-set ID");
-    this.id=id;
+  public Function(String func, String id) {
+    this.function = func;
+    this.c = useColour();
+    this.id = id;
+  }
+  private void addFunctionToCollection() {
+    for (Function f : functions) {
+      if (f.id.equals(this.id)) return;
+    }
+    functions.add(this);
   }
   private color useColour() {
     return this.c == 0 ? hexcodes[(int)random(hexcodes.length-1)] : c;
@@ -32,7 +35,7 @@ class Function {
       .setVariable("x", x);
     try {
       return (float) e.evaluate();
-    } 
+    }
     catch (ArithmeticException ae) {
       return 10e10;
     }
@@ -40,8 +43,8 @@ class Function {
   public float compute(float x) {
     return f(x);
   }
-  
-  public float summation(int a, int b){
+
+  public float summation(int a, int b) {
     float sum = 0;
     for (int i = a; i <= b; i++) {
       sum += f(i);
@@ -52,17 +55,27 @@ class Function {
   public float computeDerivative(float x) {
     float h = 10e-4;
     float ddxleft = (f(x)-f(x-h))/h, ddxright = (f(x+h)-f(x))/h;
-    if (abs(ddxleft-ddxright) > 10e-1) {
+    if (abs(ddxleft-ddxright) > 10e1) {
       throw new Error("Function is not differentiable at "+str(x));
-    } 
+    }
     return (ddxleft+ddxright)/2;
+  }
+
+  public boolean differentiable(float x) {
+    try {
+      computeDerivative(x);
+      return true;
+    }
+    catch (Error er) {
+      return false;
+    }
   }
 
   public void plotTangent(float c) {
     float ddx;
     try {
       ddx = computeDerivative(c);
-    } 
+    }
     catch(Error er) {
       new ErrorMessage(er.toString()).display();
       return;
@@ -77,6 +90,7 @@ class Function {
     }
     tangent = new Function(function, color(0));
     tangent.graph();
+    functions.add(tangent);
   }
 
   public void deleteTangent() {
@@ -90,12 +104,15 @@ class Function {
     return new float[] {screenX, height - pointY};
   }
   public void graph() {
+
+
     for (int i = 0; i <= width; i++) {
       float[] p = getPoint(i);
+
       point(p[0], p[1]);
       if (i > 0) {
         float[] pp = getPoint(i - 1);
-        if (dist(p[0], p[1], pp[0], pp[1]) > 1) {
+        if (dist(p[0], p[1], pp[0], pp[1]) > 1 && dist(p[0], p[1], pp[0], pp[1]) < height) {
           stroke(this.c);
           line(p[0], p[1], pp[0], pp[1]);
         }
@@ -110,11 +127,18 @@ class Function {
   void destroyGraph() {
     background(bg);
     axis.drawAxis();
+    // Redraw every point
     for (Point p : points) {
       p.drawPoint();
     }
-    for (Function f: functions) {
-      if (f!=this) {
+    //// Remove this object from functions collection
+    //for (Iterator<Function> iterator = functions.iterator(); iterator.hasNext(); ) {
+    //  Function f = iterator.next();
+    //  if (f.id.equals(this.id)) iterator.remove();
+    //}
+    for (Iterator<Function> iterator = functions.iterator(); iterator.hasNext(); ) {
+      Function f = iterator.next();
+      if (!f.id.equals(this.id)) {
         f.graph();
       }
     }
