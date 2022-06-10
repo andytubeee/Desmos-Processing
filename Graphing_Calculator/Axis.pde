@@ -115,6 +115,9 @@ class Axis {
     for (Point p : points) {
       p.drawPoint();
     }
+    for (Function f:functions) {
+      f.graph();
+    }
   }
 
   public void moveDown() {

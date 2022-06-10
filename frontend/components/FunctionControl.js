@@ -121,16 +121,18 @@ const FunctionSettings = ({ masterProp, func }) => {
             });
           }
           const linearApproxFuncString = `${res.value}*(x-${ddxCompute.val})+${fc}`;
-          const lap = simplify(parse(linearApproxFuncString));
+          const lap = simplify(parse(linearApproxFuncString))
+            .toString()
+            .replace(/\s/g, '');
           // Create a new d/dx function
           const newFuncId = uuidv4();
           setFunctions((functions) => [
             ...functions,
-            { id: newFuncId, function: lap.toString() },
+            { id: newFuncId, function: lap },
           ]);
           await Axios.post('/api/save', {
             object: 'FUNCTION',
-            function: lap.toString(),
+            function: lap,
             task: 'PLOT',
             id: newFuncId,
           });
