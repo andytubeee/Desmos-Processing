@@ -1,0 +1,15 @@
+{
+  "name": "desmos_like_processing_grapher",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Andrew Yang <andy.tubeee@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "server": "cd backend && nodemon index.js",
+    "client": "cd frontend && yarn dev",
+    "start": "concurrently \"yarn run client\" \"yarn run server\""
+  },
+  "dependencies": {
+    "concurrently": "^7.2.1"
+  }
+}

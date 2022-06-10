@@ -8,25 +8,24 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Server not running' });
     return;
   }
-  const client = await new w3cwebsocket('ws://localhost:8000');
+  // const client = await new w3cwebsocket('ws://localhost:8000');
   const { body } = req;
-  const { task } = body;
-  let curRequests = fs.readFileSync('data/requests.json', (err, data) => {
-    if (err) res.status(500).end();
-    return data;
-  });
-  console.log(body);
-  curRequests = JSON.parse(curRequests.toString());
-  if (req.method === 'POST') {
-    // Add request body to data/requests.json
-    fs.writeFileSync(
-      'data/requests.json',
-      JSON.stringify([...curRequests, body])
-    );
-  } else if (req.method === 'GET') {
-    // Fetch request from data/requests.json
-    res.status(200).json({
-      requests: curRequests,
-    });
-  }
+  // fs.writeFileSync('data/requests.json', JSON.stringify(body).length);
+  // let curRequests = fs.readFileSync('data/requests.json', (err, data) => {
+  //   if (err) res.status(500).end();
+  //   return data;
+  // });
+  console.log(body.length);
+  // curRequests = JSON.parse(curRequests.toString());
+  // console.log(body);
+  // res.status(200).json(curRequests || {});
+
+  // if (req.method === 'POST') {
+  //   // Add request body to data/requests.json
+  //   // fs.writeFileSync(
+  //   //   'data/requests.json'
+  //   //   // JSON.stringify([...curRequests, body])
+  //   // );
+  //   res.status(200).json(body);
+  // }
 }

@@ -105,7 +105,6 @@ class Function {
   }
   public void graph() {
 
-
     for (int i = 0; i <= width; i++) {
       float[] p = getPoint(i);
 

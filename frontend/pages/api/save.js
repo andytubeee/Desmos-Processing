@@ -72,7 +72,12 @@ export default async function handler(req, res) {
         );
       }
     }
-  } else if (task === 'DELETE') {
+  } else if (object === 'TANGENT') {
+    
+  }
+    
+    
+  if (task === 'DELETE') {
     if (object === 'POINT') {
       curPoints = curPoints.filter((point) => point.id !== body.id);
       fs.writeFileSync('data/points.json', JSON.stringify(curPoints));
@@ -81,7 +86,6 @@ export default async function handler(req, res) {
       fs.writeFileSync('data/functions.json', JSON.stringify(curFunctions));
     }
   }
-
   res.status(200).json({ success: true });
 
   // fs.writeFile('../backend/data/points.json', 'BRUH', (err) => {

@@ -85,8 +85,6 @@ void keyPressed() {
     axis.zoomIn();
   } else if (key == 'x' || key == 'X') {
     axis.zoomOut();
-  } else if (key == 'f') {
-    fetchComputation();
   }
   for (Function f : functions) {
     f.graph();
@@ -110,26 +108,15 @@ boolean funcInFunctions(Function f) {
   return false;
 }
 
-void fetchComputation() {
-  String fetchRes = loadStrings("http://localhost:"+webappPort+"/api/request")[0];
-  Map<String, Object> dataObj = new HashMap<String, Object>();
-  dataObj = (Map<String, Object>) gson.fromJson(fetchRes, dataObj.getClass());
-  String requests = dataObj.get("requests").toString();
-  println(requests);
-
-  //String task = dataObj.get("task").toString();
-  //if (task == "COMPUTE") {
-  //  float value = (float)dataObj.get("val");
-  //  String functionId = dataObj.get("functionId").toString();
-  //  for (Function f : functions) {
-  //    if (f.id.equals(functionId)) {
-  //      float returnVal = f.compute(value);
-  //      println(returnVal);
-  //      break;
-  //      //wsc.send(returnVal);
-  //    }
-  //  }
-  //}
+void fetchRequests() {
+  try {
+    String fetchRes = loadStrings("http://localhost:"+webappPort+"/api/request")[0];
+    //if (fetchRes.equals("\"\"")) return;
+    //println(fetchRes);
+    Map<String, Object> dataObj = new HashMap<String, Object>();
+    dataObj = (Map<String, Object>) gson.fromJson(fetchRes, dataObj.getClass());
+    println(dataObj);
+  } catch(Error er) {}
 }
 
 void draw() {
@@ -188,7 +175,12 @@ void draw() {
         iterator.remove();
       }
     }
-  } catch (Error er) {}
+
+    if (functions.size() > 0)
+      fetchRequests();
+  }
+  catch (Error er) {
+  }
 }
 
 //if (onCommand.fired()) {
