@@ -7,7 +7,11 @@
   "scripts": {
     "server": "cd backend && nodemon index.js",
     "client": "cd frontend && yarn dev",
-    "start": "concurrently \"yarn run client\" \"yarn run server\""
+    "processingapp": "processing-java --sketch=`pwd`/Graphing_Calculator --run",
+    "start": "concurrently \"yarn run client\" \"yarn run server\" \"yarn run processingapp\"",
+    "installserver": "cd backend && yarn",
+    "installclient": "cd frontend && yarn",
+    "installpackages": "concurrently \"yarn run installclient\" \"yarn run installserver\""
   },
   "dependencies": {
     "concurrently": "^7.2.1"

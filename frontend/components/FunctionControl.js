@@ -17,7 +17,14 @@ const Summation = (func, start, end) => {
   return sum;
 };
 
-const FunctionSettings = ({ func, wsc, id }) => {
+const isComplex = (func) => {
+  const COMPLEXREGEX =
+    /[+-]?(((\d+\.\d*|\d*\.\d+|\d+)[+-])?((\d+\.\d*|\d*\.\d+|\d+)i|i(\d+\.\d*|\d*\.\d+|\d+)|i)|(\d+\.\d*|\d*\.\d+|\d+)?e\^(\([+-]?|[+-]?\()((\d+\.\d*|\d*\.\d+|\d+)i|i(\d+\.\d*|\d*\.\d+|\d+)|i)\))/gm;
+  return COMPLEXREGEX.test(func);
+};
+
+const FunctionSettings = ({ masterProp, func }) => {
+  const { preDefFunc = null, setFunctions, allFunctions, id, wsc } = masterProp;
   const [toCompute, setToCompute] = useState({});
   const [ddxCompute, setDdxCompute] = useState({});
   const [summationParam, setSummationParam] = useState({});
@@ -84,11 +91,52 @@ const FunctionSettings = ({ func, wsc, id }) => {
         }
         break;
       case 'TANGENT':
-        await Axios.post('/api/request', {
-          object: 'TANGENT',
-          id,
-          val: ddxCompute.val,
-        });
+        try {
+          const res = GetDerivative(func, ddxCompute.val);
+          const fc = f.evaluate({ x: ddxCompute.val });
+
+          // return console.log(f.evaluate({ x: ddxCompute.val }));
+          if (isNaN(res.value)) {
+            return Swal.fire({
+              title: 'Error',
+              text: 'Tangent is not defined at x=' + ddxCompute.val,
+              icon: 'error',
+            });
+          } else if (isComplex(res.value)) {
+            return Swal.fire({
+              title: 'Error',
+              text:
+                'The derivative at x=' +
+                ddxCompute.val +
+                ' is complex: ' +
+                res.value,
+              icon: 'error',
+            });
+          } else if (isComplex(fc)) {
+            return Swal.fire({
+              title: 'Error',
+              text:
+                'The function at x=' + ddxCompute.val + ' is complex: ' + fc,
+              icon: 'error',
+            });
+          }
+          const linearApproxFuncString = `${res.value}*(x-${ddxCompute.val})+${fc}`;
+          const lap = simplify(parse(linearApproxFuncString));
+          // Create a new d/dx function
+          const newFuncId = uuidv4();
+          setFunctions((functions) => [
+            ...functions,
+            { id: newFuncId, function: lap.toString() },
+          ]);
+          await Axios.post('/api/save', {
+            object: 'FUNCTION',
+            function: lap.toString(),
+            task: 'PLOT',
+            id: newFuncId,
+          });
+        } catch (err) {
+          return Swal.fire({ title: 'Error', text: err, icon: 'error' });
+        }
         break;
     }
   };
@@ -127,17 +175,19 @@ const FunctionSettings = ({ func, wsc, id }) => {
           onChange={(e) => {
             setDdxCompute({
               ...ddxCompute,
-              val: e.target.value ? +e.target.value : null,
+              val: e.target.value.length > 0 ? +e.target.value : null,
             });
           }}
         />{' '}
         <div className='flex justify-between'>
           <button
             className={`rounded p-2 text-white ${
-              ddxCompute.val ? 'bg-cyan-300' : 'bg-slate-500 cursor-not-allowed'
+              ddxCompute.val !== undefined
+                ? 'bg-cyan-300'
+                : 'bg-slate-500 cursor-not-allowed'
             }`}
             onClick={() => {
-              if (ddxCompute.val) {
+              if (ddxCompute.val !== undefined) {
                 sendRequest('TANGENT');
               }
             }}
@@ -146,10 +196,12 @@ const FunctionSettings = ({ func, wsc, id }) => {
           </button>
           <button
             className={`rounded p-2 text-white ${
-              ddxCompute.val ? 'bg-cyan-300' : 'bg-slate-500 cursor-not-allowed'
+              ddxCompute.val !== undefined
+                ? 'bg-cyan-300'
+                : 'bg-slate-500 cursor-not-allowed'
             }`}
             onClick={() => {
-              if (ddxCompute.val) {
+              if (ddxCompute.val !== undefined) {
                 sendRequest('DERIVATIVE');
               }
             }}
@@ -225,13 +277,8 @@ const FunctionSettings = ({ func, wsc, id }) => {
   );
 };
 
-export default function FunctionControl({
-  preDefFunc = null,
-  setFunctions,
-  allFunctions,
-  id,
-  wsc,
-}) {
+export default function FunctionControl(props) {
+  const { preDefFunc = null, setFunctions, allFunctions, id, wsc } = props;
   const [plotted, setPlotted] = useState(preDefFunc !== null);
   const [func, setFunc] = useState(preDefFunc !== null ? preDefFunc : '');
   const sendFunction = async (task) => {
@@ -245,12 +292,7 @@ export default function FunctionControl({
         text: err,
       });
     }
-    await Axios.post('/api/save', {
-      object: 'FUNCTION',
-      function: func,
-      task,
-      id,
-    });
+
     switch (task) {
       case 'PLOT':
         if (plotted) return;
@@ -262,12 +304,31 @@ export default function FunctionControl({
             confirmButtonText: 'OK',
           });
         }
+        await Axios.post('/api/save', {
+          object: 'FUNCTION',
+          function: func,
+          task,
+          id,
+        });
         setPlotted(task === 'PLOT');
 
         break;
       case 'DELETE':
         setFunctions([...allFunctions].filter((f) => f.id !== id));
-
+        await Axios.post('/api/save', {
+          object: 'FUNCTION',
+          function: func,
+          task,
+          id,
+        });
+        break;
+      case 'DELETEPLOTONLY':
+        await Axios.post('/api/save', {
+          object: 'FUNCTION',
+          function: func,
+          task: 'DELETE',
+          id,
+        });
         break;
       case 'REQUEST':
         break;
@@ -289,6 +350,7 @@ export default function FunctionControl({
             setFunc(e.target.value);
             if (plotted) {
               setPlotted(false);
+              sendFunction('DELETEPLOTONLY');
             }
           }}
           defaultValue={preDefFunc}
@@ -308,7 +370,7 @@ export default function FunctionControl({
           Delete
         </button>
       </div>
-      {plotted && <FunctionSettings func={func} wsc={wsc} id={id} />}
+      {plotted && <FunctionSettings masterProp={props} func={func} />}
     </div>
   );
 }

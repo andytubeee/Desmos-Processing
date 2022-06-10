@@ -72,11 +72,8 @@ export default async function handler(req, res) {
         );
       }
     }
-  } else if (object === 'TANGENT') {
-    
   }
-    
-    
+
   if (task === 'DELETE') {
     if (object === 'POINT') {
       curPoints = curPoints.filter((point) => point.id !== body.id);

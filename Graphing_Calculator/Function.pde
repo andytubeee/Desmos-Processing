@@ -73,6 +73,7 @@ class Function {
 
   public void plotTangent(float c) {
     float ddx;
+    // Check if derivative exist
     try {
       ddx = computeDerivative(c);
     }
@@ -84,7 +85,7 @@ class Function {
       new ErrorMessage("Function is not graphed yet").display();
       return;
     }
-    String function = ddx+ "*(" +"x-"+c+")+"+f(c);
+    String function = ddx+ "*(x-"+c+")+"+f(c);
     if (tangent == null) {
       functions.add(tangent);
     }

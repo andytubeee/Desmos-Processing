@@ -23,6 +23,7 @@ ArrayList<Function> functions = new ArrayList<Function>();
 final int websocketPort = 8000, webappPort = 3000;
 
 final color bg = 255;
+boolean connected = false;
 
 void setup() {
   size(800, 800);
@@ -33,14 +34,14 @@ void setup() {
     new ErrorMessage("Web application not running").display();
   } else {
     wsc = new WebsocketClient(this, "ws://localhost:8000");
-
+    connected = true;
     axis.setParameters(-10, 10, -10, 10);
     axis.drawAxis();
     // Fetch from API
-    String[] fetchRes = loadStrings("http://localhost:"+webappPort+"/api/fetch");
+    String fetchRes = loadStrings("http://localhost:"+webappPort+"/api/fetch")[0];
     // Parse response string to a JSON object
     Map<String, Object> dataObj = new HashMap<String, Object>();
-    dataObj = (Map<String, Object>) gson.fromJson(fetchRes[0], dataObj.getClass());
+    dataObj = (Map<String, Object>) gson.fromJson(fetchRes, dataObj.getClass());
 
     Point[] existingPoints = gson.fromJson(dataObj.get("points").toString(), Point[].class);
     for (Point p : existingPoints) {
@@ -86,9 +87,9 @@ void keyPressed() {
   } else if (key == 'x' || key == 'X') {
     axis.zoomOut();
   }
-  for (Function f : functions) {
-    f.graph();
-  }
+  //for (Function f : functions) {
+  //  f.graph();
+  //}
 }
 
 void clearScreen() {
@@ -108,18 +109,21 @@ boolean funcInFunctions(Function f) {
   return false;
 }
 
-void fetchRequests() {
-  try {
-    String fetchRes = loadStrings("http://localhost:"+webappPort+"/api/request")[0];
-    //if (fetchRes.equals("\"\"")) return;
-    //println(fetchRes);
-    Map<String, Object> dataObj = new HashMap<String, Object>();
-    dataObj = (Map<String, Object>) gson.fromJson(fetchRes, dataObj.getClass());
-    println(dataObj);
-  } catch(Error er) {}
-}
+//void fetchRequests() {
+//  try {
+//    String fetchRes = loadStrings("http://localhost:"+webappPort+"/api/request")[0];
+//    //if (fetchRes.equals("\"\"")) return;
+//    //println(fetchRes);
+//    Map<String, Object> dataObj = new HashMap<String, Object>();
+//    dataObj = (Map<String, Object>) gson.fromJson(fetchRes, dataObj.getClass());
+//    println(dataObj);
+//  } 
+//  catch(Error er) {
+//  }
+//}
 
 void draw() {
+  if (!connected) return;
   try {
     String[] fetchRes = loadStrings("http://localhost:"+webappPort+"/api/fetch");
     // Parse response string to a JSON object
@@ -176,11 +180,9 @@ void draw() {
       }
     }
 
-    if (functions.size() > 0)
-      fetchRequests();
   }
-  catch (Error er) {
-  }
+  catch (NullPointerException er) {
+  } 
 }
 
 //if (onCommand.fired()) {
