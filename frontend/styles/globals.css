@@ -14,4 +14,7 @@
   .btn-blue {
     @apply bg-blue-500 text-white rounded p-2;
   }
+  .btn-cyan {
+    @apply bg-cyan-500 text-white rounded p-2;
+  }
 }
