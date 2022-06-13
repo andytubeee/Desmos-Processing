@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { simplify, parse, derivative, isInteger } from 'mathjs';
 import RiemannSum from './Function/RiemannSum';
 import Summation from './Function/Summation';
+import Compute from './Function/Compute';
 
 const isComplex = (func) => {
   const COMPLEXREGEX =
@@ -14,7 +15,6 @@ const isComplex = (func) => {
 
 const FunctionSettings = ({ masterProp, func }) => {
   const { preDefFunc = null, setFunctions, allFunctions, id, wsc } = masterProp;
-  const [toCompute, setToCompute] = useState({});
   const [ddxCompute, setDdxCompute] = useState({});
 
   const GetDerivative = (func, val) => {
@@ -29,22 +29,6 @@ const FunctionSettings = ({ masterProp, func }) => {
   const sendRequest = async (task) => {
     const f = simplify(parse(func));
     switch (task) {
-      case 'COMPUTE':
-        if (toCompute?.val) {
-          try {
-            // console.log(toCompute.val);
-            const res = f.evaluate({ x: toCompute.val });
-            setToCompute({ ...toCompute, res, displayVal: toCompute.val });
-          } catch (err) {
-            Swal.fire({
-              title: 'Error',
-              text: err,
-              icon: 'error',
-            });
-          }
-        }
-        break;
-
       case 'DERIVATIVE':
         try {
           const res = GetDerivative(func, ddxCompute.val);
@@ -111,31 +95,7 @@ const FunctionSettings = ({ masterProp, func }) => {
   };
   return (
     <div className='flex flex-col mt-3 gap-4'>
-      <div className='flex gap-3'>
-        <input
-          type='number'
-          placeholder='Compute'
-          className='rounded border pl-2'
-          onChange={(e) => {
-            setToCompute(
-              e.target.value ? { ...toCompute, val: +e.target.value } : {}
-            );
-          }}
-        />{' '}
-        <button
-          className={`rounded p-2 text-white ${
-            toCompute?.val ? 'bg-orange-300' : 'bg-slate-500 cursor-not-allowed'
-          }`}
-          onClick={() => {
-            if (toCompute?.val) sendRequest('COMPUTE');
-          }}
-        >
-          Compute f(x)
-        </button>
-      </div>
-      {toCompute?.res && (
-        <h1>{`f(${toCompute.displayVal}) = ${toCompute.res}`}</h1>
-      )}
+      <Compute func={func} />
       <div className='flex flex-col gap-3'>
         <input
           type='number'
