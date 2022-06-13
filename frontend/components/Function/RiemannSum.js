@@ -71,7 +71,7 @@ export default function RiemannSum({ func }) {
           }}
         />
       </div>
-      <div class='flex gap-2'>
+      <div className='flex gap-2'>
         <button
           type='number'
           className={`btn-cyan`}
