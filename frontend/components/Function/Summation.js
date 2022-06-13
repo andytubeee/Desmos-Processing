@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { simplify, parse, derivative, isInteger } from 'mathjs';
+import Swal from 'sweetalert2';
 
 const ComputeSummation = (func, start, end) => {
   if (start > end) throw new Error('Bound not valid');

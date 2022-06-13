@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { simplify, parse, derivative, isInteger } from 'mathjs';
+import Swal from 'sweetalert2';
 
 export default function Compute({ func }) {
   const [toCompute, setToCompute] = useState({});

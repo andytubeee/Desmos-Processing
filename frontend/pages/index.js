@@ -87,7 +87,7 @@ const Settings = () => {
   };
 
   return (
-    <div className='p-4 border'>
+    <div className='p-4 border rounded'>
       <h1 className='text-center text-4xl font-bold'>Settings</h1>
       <div className='flex gap-4'>
         <button
@@ -98,7 +98,7 @@ const Settings = () => {
               })
             );
           }}
-          className='btn'
+          className='btn-green'
         >
           Zoom In +
         </button>
@@ -110,7 +110,7 @@ const Settings = () => {
               })
             );
           }}
-          className='btn'
+          className='btn-green'
         >
           Zoom Out -
         </button>
@@ -145,7 +145,7 @@ const Settings = () => {
             setYBound([+e.target.value, yBound[1]]);
           }}
         />
-        <code> {` <= x <= `}</code>
+        <code> {` <= y <= `}</code>
         <input
           type='number'
           className='input w-14'
@@ -164,7 +164,7 @@ const Settings = () => {
 export default function Home({ data, connected }) {
   const [points, setPoints] = useState(data?.points);
   const [functions, setFunctions] = useState(data?.functions);
-
+  const [settingsState, setSettingsState] = useState(false);
   if (!connected)
     return (
       <>
@@ -179,7 +179,15 @@ export default function Home({ data, connected }) {
     );
   return (
     <div className='p-3'>
-      <Settings />
+      <button
+        className='btn bg-black text-white mb-3'
+        onClick={() => {
+          setSettingsState((s) => !s);
+        }}
+      >
+        {settingsState ? 'Close' : 'Open'} Settings
+      </button>
+      {settingsState && <Settings />}
       <div className='flex justify-between items-start'>
         <div className='p-3'>
           <button
