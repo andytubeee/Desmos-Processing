@@ -6,24 +6,99 @@ import Axios from 'axios';
 import absoluteUrl from 'next-absolute-url';
 import { PointControl } from '../components/PointControl';
 import FunctionControl from '../components/FunctionControl';
+import { isInteger } from 'mathjs';
 
 const client = new w3cwebsocket('ws://localhost:8000');
 
 const Settings = () => {
+  const [xBound, setXBound] = useState([-10, 10]);
+  const [yBound, setYBound] = useState([-10, 10]);
+
+  const ValidateBound = () => {
+    if (xBound[0] >= xBound[1]) {
+      Swal.fire({
+        title: 'Error',
+        text: 'X-axis lower bound must be less than upper bound',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+      return false;
+    }
+    if (yBound[0] >= yBound[1]) {
+      Swal.fire({
+        title: 'Error',
+        text: 'Y-axis lower bound must be less than upper bound',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+      return false;
+    }
+    if (
+      !isInteger(xBound[0]) ||
+      !isInteger(xBound[1]) ||
+      !isInteger(yBound[0]) ||
+      !isInteger(yBound[1])
+    ) {
+      Swal.fire({
+        title: 'Error',
+        text: 'X-axis and Y-axis bounds must be integers',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const sendAxis = () => {
+    // Validate bound parameters
+    if (!ValidateBound()) return;
+    if (xBound[0] >= xBound[1]) {
+      return Swal.fire({
+        title: 'Error',
+        text: 'X-axis lower bound must be less than upper bound',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+    if (yBound[0] >= yBound[1]) {
+      return Swal.fire({
+        title: 'Error',
+        text: 'Y-axis lower bound must be less than upper bound',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+    if (
+      !isInteger(xBound[0]) ||
+      !isInteger(xBound[1]) ||
+      !isInteger(yBound[0]) ||
+      !isInteger(yBound[1])
+    ) {
+      return Swal.fire({
+        title: 'Error',
+        text: 'X-axis and Y-axis bounds must be integers',
+        icon: 'error',
+        confirmButtonText: 'OK',
+      });
+    }
+    const action = `AXIS ${xBound[0]} ${xBound[1]} ${yBound[0]} ${yBound[1]}`;
+    client.send(JSON.stringify({ action }));
+  };
+
   return (
-    <div>
-      <div className='rounded border-2 mb-3'>
+    <div className='p-4 border'>
+      <h1 className='text-center text-4xl font-bold'>Settings</h1>
+      <div className='flex gap-4'>
         <button
           onClick={() => {
             client.send(
-              client.send(
-                JSON.stringify({
-                  action: 'ZOOMIN',
-                })
-              )
+              JSON.stringify({
+                action: 'ZOOMIN',
+              })
             );
           }}
-          className='border m-4 p-2 rounded'
+          className='btn'
         >
           Zoom In +
         </button>
@@ -35,11 +110,54 @@ const Settings = () => {
               })
             );
           }}
-          className='border m-4 p-2 rounded'
+          className='btn'
         >
           Zoom Out -
         </button>
       </div>
+      <div className='my-2'>
+        <h1 className='font-bold'>X Bound:</h1>
+        <input
+          type='number'
+          className='input w-14'
+          defaultValue={xBound[0]}
+          onChange={(e) => {
+            setXBound([+e.target.value, xBound[1]]);
+          }}
+        />
+        <code> {` <= x <= `}</code>
+        <input
+          type='number'
+          className='input w-14'
+          defaultValue={xBound[1]}
+          onChange={(e) => {
+            setXBound([xBound[0], +e.target.value]);
+          }}
+        />
+      </div>
+      <div className='my-2'>
+        <h1 className='font-bold'>Y Bound:</h1>
+        <input
+          type='number'
+          className='input w-14'
+          defaultValue={yBound[0]}
+          onChange={(e) => {
+            setYBound([+e.target.value, yBound[1]]);
+          }}
+        />
+        <code> {` <= x <= `}</code>
+        <input
+          type='number'
+          className='input w-14'
+          defaultValue={yBound[1]}
+          onChange={(e) => {
+            setYBound([yBound[0], +e.target.value]);
+          }}
+        />
+      </div>
+      <button className='btn-blue' onClick={sendAxis}>
+        Set Axis
+      </button>
     </div>
   );
 };
@@ -63,7 +181,7 @@ export default function Home({ data, connected }) {
     <div className='p-3'>
       <Settings />
       <div className='flex justify-between items-start'>
-        <div>
+        <div className='p-3'>
           <button
             className='rounded text-white bg-orange-300 p-3'
             onClick={() => {

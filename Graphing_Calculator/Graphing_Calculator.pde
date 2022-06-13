@@ -58,6 +58,18 @@ void setup() {
   }
 }
 
+void webSocketEvent(String msg) {
+  try {
+    Map<String, Object> dataObj = new HashMap<String, Object>();
+    dataObj = (Map<String, Object>) gson.fromJson(msg, dataObj.getClass());
+    String action = dataObj.get("action").toString();
+    onCommand.fire(action);
+  }
+  catch(IllegalStateException er) {
+    println("Incorrect JSON request");
+  }
+}
+
 public static boolean portAvailable(int portNum) {
   boolean portFree;
   ServerSocket ignored;
@@ -109,18 +121,17 @@ boolean funcInFunctions(Function f) {
   return false;
 }
 
-//void fetchRequests() {
-//  try {
-//    String fetchRes = loadStrings("http://localhost:"+webappPort+"/api/request")[0];
-//    //if (fetchRes.equals("\"\"")) return;
-//    //println(fetchRes);
-//    Map<String, Object> dataObj = new HashMap<String, Object>();
-//    dataObj = (Map<String, Object>) gson.fromJson(fetchRes, dataObj.getClass());
-//    println(dataObj);
-//  } 
-//  catch(Error er) {
-//  }
-//}
+void redraw() {
+  // Redraw every point
+  for (Point p : points) {
+    p.drawPoint();
+  }
+
+  // Redraw every function
+  for (Function f : functions) {
+    f.graph();
+  }
+}
 
 void draw() {
   if (!connected) return;
@@ -179,10 +190,26 @@ void draw() {
         iterator.remove();
       }
     }
-
   }
   catch (NullPointerException er) {
-  } 
+  }
+
+  if (onCommand.fired()) {
+    String eventData = onCommand.data.pop();
+
+    if (eventData.equals("ZOOMIN"))
+      axis.zoomIn();
+    else if (eventData.equals("ZOOMOUT"))
+      axis.zoomOut();
+    else {
+      String[] commands = eventData.split(" ");
+      int xStart = int(commands[1]), xEnd = int(commands[2]), yStart = int(commands[3]), yEnd = int(commands[4]);
+      axis.setParameters(xStart, xEnd, yStart, yEnd);
+    }
+
+
+    onCommand.finishEvent();
+  }
 }
 
 //if (onCommand.fired()) {

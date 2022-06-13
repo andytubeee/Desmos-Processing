@@ -99,13 +99,12 @@ class Function {
   }
 
   float[] getPoint(int screenX) {
-    int xStart = axis.xStart, xEnd =axis.xEnd, yStart = axis.yStart, yEnd = axis.yEnd;
+    int xStart = axis.xStart, xEnd = axis.xEnd, yStart = axis.yStart, yEnd = axis.yEnd;
     float fakeX = map(screenX, 0, width, xStart, xEnd);
     float pointY = map(f(fakeX), yStart, yEnd, 0, height);
     return new float[] {screenX, height - pointY};
   }
   public void graph() {
-
     for (int i = 0; i <= width; i++) {
       float[] p = getPoint(i);
 

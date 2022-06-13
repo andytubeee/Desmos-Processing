@@ -19,7 +19,6 @@ wsServer.on('request', (request) => {
 
   connection.on('message', (message) => {
     if (message.type === 'utf8') {
-      console.log(message.utf8Data);
       for (key in clients) {
         clients[key].sendUTF(message.utf8Data);
       }
@@ -31,6 +30,4 @@ wsServer.on('error', (error) => {
   console.log('Error: ' + error);
 });
 
-wsServer.on('connect', (connection) => {
-  connection.send('Welcome');
-});
+wsServer.on('connect', (connection) => {});

@@ -8,6 +8,11 @@ class Event {
     if (!this.fired) this.fired = true;
   }
 
+  public void fire(String data) {
+    this.fire();
+    this.data.push(data);
+  }
+
   public boolean fired() {
     return this.fired;
   }
@@ -15,6 +20,7 @@ class Event {
   public void finishEvent() {
     this.fired = false;
     numsFired++;
+    //this.data.pop();
   }
 
 }

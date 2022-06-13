@@ -39,7 +39,7 @@ const FunctionSettings = ({ masterProp, func }) => {
     const f = simplify(parse(func));
 
     return {
-      dFunc: derivative(f, 'x').toString(),
+      dFunc: derivative(f, 'x').toString().replace(/\s/g, ''),
       value: derivative(f, 'x').evaluate({ x: val }),
     };
   };

@@ -11,6 +11,9 @@ class Axis {
     this.xEnd = xEnd;
     this.yStart = yStart;
     this.yEnd = yEnd;
+    
+    this.drawAxis();
+    redraw();
   }
   private boolean validParameters() {
     boolean initalized = !(this.xStart == 0 && this.xEnd == 0 && this.yStart == 0 && this.yEnd == 0);
@@ -110,28 +113,18 @@ class Axis {
         textY -= yScale * yScaleJump;
     }
   }
-
-  private void onMove() {
-    for (Point p : points) {
-      p.drawPoint();
-    }
-    for (Function f:functions) {
-      f.graph();
-    }
-  }
-
   public void moveDown() {
     yStart += 1;
     yEnd += 1;
     drawAxis();
 
-    onMove();
+    redraw();
   }
   public void moveUp() {
     yStart -= 1;
     yEnd -= 1;
     drawAxis();
-    onMove();
+    redraw();
   }
 
   public void moveLeft() {
@@ -139,14 +132,14 @@ class Axis {
     xEnd -= 1;
 
     drawAxis();
-    onMove();
+    redraw();
   }
 
   public void moveRight() {
     xStart += 1;
     xEnd += 1;
     drawAxis();
-    onMove();
+    redraw();
   }
 
   public void zoomIn() {
@@ -160,7 +153,7 @@ class Axis {
     }
 
     drawAxis();
-    onMove();
+    redraw();
   }
   public void zoomOut() {
     xStart -= xScaleJump;
@@ -168,6 +161,6 @@ class Axis {
     yStart -= yScaleJump;
     yEnd += yScaleJump;
     drawAxis();
-    onMove();
+    redraw();
   }
 }
