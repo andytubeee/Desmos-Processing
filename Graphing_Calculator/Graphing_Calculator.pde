@@ -25,14 +25,30 @@ final int websocketPort = 8000, webappPort = 3000;
 final color bg = 255;
 boolean connected = false;
 
+final boolean debugMode = false;
+
 void setup() {
   size(800, 800);
   background(bg);
+  if (debugMode) {
+    connected = true; // Assume connected
+    axis.setParameters(-10, 10, -10, 10);
+    axis.drawAxis();
+
+    // Initalize a test function
+    Function f = new Function("x^2", "testFunc");
+    f.graph();
+    functions.add(f);
+
+    f.plotRiemann("TRAPEZOIDAL", -3, 3, 4);
+    return;
+  }
   if (!portAvailable(websocketPort)) {
     new ErrorMessage("Websocket connection not running").display();
   } else if (!portAvailable(webappPort)) {
     new ErrorMessage("Web application not running").display();
   } else {
+
     wsc = new WebsocketClient(this, "ws://localhost:8000");
     connected = true;
     axis.setParameters(-10, 10, -10, 10);
@@ -65,8 +81,8 @@ void webSocketEvent(String msg) {
     String action = dataObj.get("action").toString();
     onCommand.fire(action);
   }
-  catch(IllegalStateException er) {
-    println("Incorrect JSON request");
+  catch(Exception er) {
+    println("Incorrect JSON request:", msg);
   }
 }
 
@@ -98,6 +114,10 @@ void keyPressed() {
     axis.zoomIn();
   } else if (key == 'x' || key == 'X') {
     axis.zoomOut();
+  } else if (key == 't') {
+    // Used to test various functions during development.
+    if (debugMode)
+      undrawRSBlocks("testFunc");
   }
   //for (Function f : functions) {
   //  f.graph();
@@ -122,7 +142,9 @@ boolean funcInFunctions(Function f) {
 }
 
 void redraw() {
-  // Redraw every point
+  axis.drawAxis();
+
+  // Redra  w every point
   for (Point p : points) {
     p.drawPoint();
   }
@@ -135,6 +157,7 @@ void redraw() {
 
 void draw() {
   if (!connected) return;
+  if (debugMode) return;
   try {
     String[] fetchRes = loadStrings("http://localhost:"+webappPort+"/api/fetch");
     // Parse response string to a JSON object
@@ -203,8 +226,28 @@ void draw() {
       axis.zoomOut();
     else {
       String[] commands = eventData.split(" ");
-      int xStart = int(commands[1]), xEnd = int(commands[2]), yStart = int(commands[3]), yEnd = int(commands[4]);
-      axis.setParameters(xStart, xEnd, yStart, yEnd);
+      String masterCmd = commands[0];
+      if (masterCmd.equals("AXIS")) {
+        // Change axis parameters
+        int xStart = int(commands[1]), xEnd = int(commands[2]), yStart = int(commands[3]), yEnd = int(commands[4]);
+        axis.setParameters(xStart, xEnd, yStart, yEnd);
+      } else if (masterCmd.equals("RIEMANN")) {
+        //println(eventData);
+        // Plot riemann sum blocks under the function
+        String funcId = commands[1];
+        String type = commands[2];
+        float start = Float.valueOf(commands[3]), end = Float.valueOf(commands[4]);
+        int subdivisions = int(commands[5]);
+        for (Function f : functions) {
+          if (f.id.equals(funcId)) {
+            f.plotRiemann(type, start, end, subdivisions);
+            break;
+          }
+        }
+      } else if (masterCmd.equals("DELETERIEMANN")) {
+        String funcId = commands[1];
+        undrawRSBlocks(funcId);
+      }
     }
 
 

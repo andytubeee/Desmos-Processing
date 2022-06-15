@@ -14,14 +14,20 @@ const isComplex = (func) => {
 };
 
 const FunctionSettings = ({ masterProp, func }) => {
-  const { preDefFunc = null, setFunctions, allFunctions, id, wsc } = masterProp;
+  const {
+    preDefFunc = null,
+    setFunctions,
+    allFunctions,
+    id,
+    setWSCInstructions,
+  } = masterProp;
 
   return (
     <div className='flex flex-col mt-3 gap-4'>
       <Compute func={func} />
       <Derivative func={func} setFunctions={setFunctions} />
       <Summation func={func} />
-      <RiemannSum func={func} />
+      <RiemannSum func={func} funcId={id} />
     </div>
   );
 };

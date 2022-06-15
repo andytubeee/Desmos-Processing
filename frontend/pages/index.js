@@ -165,6 +165,14 @@ export default function Home({ data, connected }) {
   const [points, setPoints] = useState(data?.points);
   const [functions, setFunctions] = useState(data?.functions);
   const [settingsState, setSettingsState] = useState(false);
+  const [wscInstructions, setWSCInstructions] = useState('');
+  useEffect(() => {
+    if (wscInstructions.length > 0) {
+      client.send(wscInstructions);
+      setWSCInstructions('');
+    }
+    // client.send('Hello');
+  }, [wscInstructions]);
   if (!connected)
     return (
       <>
@@ -226,7 +234,7 @@ export default function Home({ data, connected }) {
               allFunctions={functions}
               preDefFunc={f?.function || null}
               id={f.id}
-              wsc={client}
+              setWSCInstructions={setWSCInstructions}
             />
           ))}
         </div>

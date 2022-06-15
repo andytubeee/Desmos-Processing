@@ -17,8 +17,10 @@
   .btn-cyan {
     @apply bg-cyan-500 text-white rounded p-2;
   }
-
   .btn-green {
     @apply bg-green-500 text-white rounded p-2;
+  }
+  .btn-danger {
+    @apply bg-red-500 text-white rounded p-2;
   }
 }

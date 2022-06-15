@@ -142,4 +142,88 @@ class Function {
       }
     }
   }
+  public void plotRiemann(String mode, float start, float end, int subdivisions) {
+    float dx = (float)(end-start)/subdivisions; // Relative to the x-axis and input
+    int xStart = axis.xStart, xEnd = axis.xEnd, yStart = axis.yStart, yEnd = axis.yEnd;
+    int xScale = width / (xEnd - xStart);
+    int yScale = height / (yEnd-yStart);
+
+    float rxStart = map(start, xStart, xEnd, 0, width);
+
+    float xAxisPos;
+
+    if (yStart < 0 && yEnd > 0) {
+      xAxisPos = yEnd*yScale;
+    } else if (yStart >= 0) {
+      xAxisPos = height-10;
+    } else {
+      xAxisPos = 10;
+    }
+
+    float rectWidth = xScale*dx; // Absolute value relative to the window
+
+    noStroke();
+    //fill(red(this.c), green(this.c), blue(this.c), 50);
+    switch (mode) {
+    case "LEFT":
+      for (int i = 0; i < subdivisions; i++) {
+        float rectHeight = this.compute(start + i*dx)*yScale;
+        float rectX = rxStart+rectWidth, rectY = xAxisPos + rectHeight;
+        Block rect = new Block(rxStart, xAxisPos-rectHeight, rectWidth, rectHeight, this.id, this.c);
+        rect.draw();
+        rxStart+=rectWidth;
+      }
+      break;
+    case "RIGHT":
+      // Right riemann sum starts with f(i+1);
+      for (int i = 1; i <= subdivisions; i++) {
+        float rectHeight = this.compute(start + i*dx)*yScale; // Absolute height in pixel unit
+        float rectX = rxStart+rectWidth, rectY = xAxisPos + rectHeight;
+        Block rect = new Block(rxStart, xAxisPos-rectHeight, rectWidth, rectHeight, this.id, this.c);
+        rect.draw();
+        rxStart+=rectWidth;
+      }
+      break;
+    case "TRAPEZOIDAL":
+      strokeWeight(1);
+      for (int i = 0; i < subdivisions; i++) {
+        float[] p1 = {rxStart, xAxisPos}; // bottom left corner
+        float[] p2 = {rxStart+rectWidth, xAxisPos}; // bottom right corner
+        float leftYVal = this.compute(start + i*dx);
+        float leftYHeight = leftYVal * yScale;
+        float[] p3 = {rxStart, xAxisPos-leftYHeight}; // top left
+        float rightYVal = this.compute(start + (i+1)*dx);
+        float rightYHeight = rightYVal*yScale;
+        float[] p4 ={rxStart+rectWidth, xAxisPos-rightYHeight}; // top right
+        Block trap = new Block(p1, p2, p3, p4, this.id, this.c);
+        trap.draw();
+        rxStart+=rectWidth;
+      }
+
+      break;
+    case "MIDPOINT":
+      for (int i = 0; i < subdivisions; i++) {
+        float left = this.compute(start + i*dx)*yScale; // Absolute height in pixel unit
+        float right = this.compute(start + (i+1)*dx)*yScale; // Absolute height in pixel unit
+        float rectHeight = (left+right)/2;
+        float rectX = rxStart+rectWidth, rectY = xAxisPos + rectHeight;
+        Block rect = new Block(rxStart, xAxisPos-rectHeight, rectWidth, rectHeight, this.id, this.c);
+        rect.draw();
+        rxStart+=rectWidth;
+      }
+      break;
+    default:
+      return;
+      //throw new Error("Invalid riemann sum mode");
+    }
+  }
+}
+
+color getFunctionColor(String funcId) {
+  for (Function f : functions) {
+    if (f.id.equals(funcId)) {
+      return f.c;
+    }
+  }
+  return -1;
 }

@@ -88,7 +88,7 @@ export default function Derivative({ func, setFunctions }) {
       <div className='flex flex-col gap-3'>
         <input
           type='number'
-          placeholder='Derivative'
+          placeholder="f'(x)"
           className='rounded border pl-2 py-2'
           onChange={(e) => {
             setDdxCompute({

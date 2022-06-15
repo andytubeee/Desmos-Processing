@@ -1,14 +1,22 @@
+import { w3cwebsocket } from 'websocket';
 import React, { useEffect, useState } from 'react';
 import { simplify, parse, derivative, isInteger } from 'mathjs';
 import Swal from 'sweetalert2';
+const client = new w3cwebsocket('ws://localhost:8000');
 
-export default function RiemannSum({ func }) {
+export default function RiemannSum({ func, funcId, setWSCInstructions }) {
   const [params, setParam] = useState({});
   const [res, setRes] = useState();
   const ComputeRS = (type) => {
     let sum = 0;
     const dx = (params.end - params.start) / params.subdivisons;
     const f = simplify(parse(func));
+    if (Object.keys(params).length === 0) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Missing parameters',
+      });
+    }
     switch (type) {
       case 'LEFT':
         for (let i = 0; i < params.subdivisons; i++) {
@@ -42,6 +50,31 @@ export default function RiemannSum({ func }) {
     }
     return sum;
   };
+  const HandleButtonClick = (type) => {
+    if (Object.keys(params).length === 0) {
+      return Swal.fire({
+        title: 'Missing parameters',
+        icon: 'error',
+      });
+    }
+    setParam({ ...params, mode: type });
+    setRes(ComputeRS(type));
+    client.send(
+      JSON.stringify({
+        action: `RIEMANN ${funcId} ${type} ${params.start} ${params.end} ${params.subdivisons}`,
+      })
+    );
+  };
+
+  const ClearRS = () => {
+    setRes(null);
+    client.send(
+      JSON.stringify({
+        action: `DELETERIEMANN ${funcId}`,
+      })
+    );
+  };
+
   return (
     <div className='flex flex-col gap-3'>
       <h1 className='font-bold'>Riemann Sum Integral</h1>
@@ -75,43 +108,36 @@ export default function RiemannSum({ func }) {
         <button
           type='number'
           className={`btn-cyan`}
-          onClick={() => {
-            setParam({ ...params, mode: 'LEFT' });
-            setRes(ComputeRS('LEFT'));
-          }}
+          onClick={() => HandleButtonClick('LEFT')}
         >
           Left
         </button>
         <button
           type='number'
           className={`btn-cyan`}
-          onClick={() => {
-            setParam({ ...params, mode: 'RIGHT' });
-            setRes(ComputeRS('RIGHT'));
-          }}
+          onClick={() => HandleButtonClick('RIGHT')}
         >
           Right
         </button>
         <button
           type='number'
           className={`btn-cyan`}
-          onClick={() => {
-            setParam({ ...params, mode: 'MIDPOINT' });
-            setRes(ComputeRS('MIDPOINT'));
-          }}
+          onClick={() => HandleButtonClick('MIDPOINT')}
         >
           Midpoint
         </button>
         <button
           type='number'
           className={`btn-cyan`}
-          onClick={() => {
-            setParam({ ...params, mode: 'TRAPEZOIDAL' });
-            setRes(ComputeRS('TRAPEZOIDAL'));
-          }}
+          onClick={() => HandleButtonClick('TRAPEZOIDAL')}
         >
           Trapezoidal
         </button>
+        {res && (
+          <button className='btn-danger' onClick={ClearRS}>
+            Clear
+          </button>
+        )}
       </div>
       {res && (
         <h1>

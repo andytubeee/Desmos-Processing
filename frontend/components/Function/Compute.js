@@ -4,18 +4,18 @@ import Swal from 'sweetalert2';
 
 export default function Compute({ func }) {
   const [toCompute, setToCompute] = useState({});
-  const onComputeClick = () => {
+  const onEvaluateClick = () => {
     const f = simplify(parse(func));
     const res = f.evaluate({ x: toCompute.val });
     setToCompute({ ...toCompute, res, displayVal: toCompute.val });
   };
   return (
     <>
-      <h1 className='font-bold'>Compute Function</h1>
+      <h1 className='font-bold'>Evaluate Function</h1>
       <div className='flex gap-3'>
         <input
           type='number'
-          placeholder='Compute'
+          placeholder='Evaluate f(x)'
           className='rounded border pl-2'
           onChange={(e) => {
             setToCompute(
@@ -28,10 +28,10 @@ export default function Compute({ func }) {
             toCompute?.val ? 'bg-orange-300' : 'bg-slate-500 cursor-not-allowed'
           }`}
           onClick={() => {
-            if (toCompute?.val) onComputeClick();
+            if (toCompute?.val) onEvaluateClick();
           }}
         >
-          Compute f(x)
+          Evaluate f(x)
         </button>
       </div>
       {toCompute?.res && (

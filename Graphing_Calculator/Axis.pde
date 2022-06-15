@@ -11,7 +11,7 @@ class Axis {
     this.xEnd = xEnd;
     this.yStart = yStart;
     this.yEnd = yEnd;
-    
+
     this.drawAxis();
     redraw();
   }
@@ -114,31 +114,46 @@ class Axis {
     }
   }
   public void moveDown() {
+    int yScale = height / (yEnd-yStart);
+
     yStart += 1;
     yEnd += 1;
     drawAxis();
+    moveAllRSBlock("DOWN", yScale);
 
     redraw();
   }
   public void moveUp() {
+    int yScale = height / (yEnd-yStart);
+
     yStart -= 1;
     yEnd -= 1;
     drawAxis();
+    moveAllRSBlock("UP", yScale);
+
     redraw();
   }
 
   public void moveLeft() {
+    int xScale = width / (xEnd - xStart);
+
     xStart -= 1;
     xEnd -= 1;
 
     drawAxis();
+    moveAllRSBlock("LEFT", xScale);
+
     redraw();
   }
 
   public void moveRight() {
+    int xScale = width / (xEnd - xStart);
+
     xStart += 1;
     xEnd += 1;
     drawAxis();
+    moveAllRSBlock("RIGHT", xScale);
+
     redraw();
   }
 
