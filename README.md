@@ -22,8 +22,13 @@ This will start the client, websocket server and the processing sketch
 
 ## Features
 
+### In processing
+
 - Move the cartesian plane around using **WASD**
 - Zoom in/out using **Z**, and **X**
+
+### Using Web app GUI
+
 - Plot points
 - Plot functions
 - Evaluate Function
@@ -76,3 +81,5 @@ f.plotTangent(0); // Plots a tangent on function f at x = 0;
 f.summation(1, 5); // Evaluates the summation (Sigma) from 1 to 5.
 
 ```
+
+Not satisfied with the features? You can also contribute to this project yourself. 
