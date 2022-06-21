@@ -22,6 +22,8 @@ This will start the client, websocket server and the processing sketch
 
 ## Features
 
+- Move the cartesian plane around using **WASD**
+- Zoom in/out using **Z**, and **X**
 - Plot points
 - Plot functions
 - Evaluate Function
@@ -39,14 +41,38 @@ This will start the client, websocket server and the processing sketch
 
 Head to `frontend/data/<file>.json` and make sure it contains valid JSON and you are not writing changes yourself. In this program, every data is saved, which includes points and functions. This means when you close and re-open the app, all of your previously plotted functions and points will remain.
 
+### More bugs?
+
+Simply close connection and re-run `yarn run start`. Or be brave: Fork the repository, and fix the bug yourself. :)
+
 # No Node.js? No worries
 
-This program can also function without a GUI and Websocket communication protocol if Node.js is not available. You can still use the program in regular processing. However, no data will be saved since the communication and fetching protocol is available
+This program can also function without a GUI and Websocket communication protocol if Node.js is not available. You can still use the program in regular processing. However, your data is not saved.
 
 Go to `Graphing_Calculator.pde`, and turn on _debugMode_ by setting `debugMode = true;`
 
 ## Create a point
 
 ```java
+Point p = new Point(x, y, id);
+p.drawPoint(); // draws point to the screen
+p.undraw(); // removes the point from the screen.
+```
+
+## Create a function and its features
+
+```java
+
+Function f = new Function("sin(x)", "function_id");
+
+f.graph(); // Graphs the function
+
+f.evaluate(3.14); // Evaluates the function f at x = 3.14
+
+f.evaluateDerivative(5); // Evaluates the derivative of the function f and x = 5;
+
+f.plotTangent(0); // Plots a tangent on function f at x = 0;
+
+f.summation(1, 5); // Evaluates the summation (Sigma) from 1 to 5.
 
 ```
