@@ -32,6 +32,30 @@ export default function Derivative({ func, setFunctions }) {
       });
     }
   };
+  useEffect(() => {
+    switch (ddxCompute.val) {
+      case 'e':
+        setDdxCompute({ ...ddxCompute, val: Math.E });
+        break;
+      case 'pi':
+        setDdxCompute({ ...ddxCompute, val: Math.PI });
+        break;
+      case 'g':
+        setDdxCompute({ ...ddxCompute, val: 6.6743 * Math.pow(10, -11) });
+        break;
+      case 'phi':
+        setDdxCompute({ ...ddxCompute, val: (1 + Math.sqrt(5)) / 2 });
+        break;
+      default:
+        break;
+    }
+  }, [ddxCompute.val]);
+  const ValidateInput = () => {
+    const mathConstants = ['e', 'pi', 'g', 'phi'];
+    if (mathConstants.includes(ddxCompute.val)) return true;
+    else if (!isNaN(ddxCompute.val)) return true;
+    return false;
+  };
   const PlotTangent = async () => {
     try {
       const f = simplify(parse(func));
@@ -68,15 +92,21 @@ export default function Derivative({ func, setFunctions }) {
         .replace(/\s/g, '');
       // Create a new d/dx function
       const newFuncId = uuidv4();
+      const funcNote = `This function is the tangent of ${func} at x equals ${ddxCompute.val}`;
       setFunctions((functions) => [
         ...functions,
-        { id: newFuncId, function: lap },
+        {
+          id: newFuncId,
+          function: lap,
+          note: funcNote,
+        },
       ]);
       await Axios.post('/api/save', {
         object: 'FUNCTION',
         function: lap,
         task: 'PLOT',
         id: newFuncId,
+        note: funcNote,
       });
     } catch (err) {
       return Swal.fire({ title: 'Error', text: err, icon: 'error' });
@@ -87,25 +117,24 @@ export default function Derivative({ func, setFunctions }) {
       <h1 className='font-bold'>Function Derivative</h1>
       <div className='flex flex-col gap-3'>
         <input
-          type='number'
           placeholder="f'(x)"
           className='rounded border pl-2 py-2'
           onChange={(e) => {
             setDdxCompute({
               ...ddxCompute,
-              val: e.target.value.length > 0 ? +e.target.value : null,
+              val: e.target.value.length > 0 ? e.target.value : null,
             });
           }}
         />{' '}
         <div className='flex justify-between'>
           <button
             className={`rounded p-2 text-white ${
-              ddxCompute.val !== undefined
+              ValidateInput()
                 ? 'bg-cyan-300'
                 : 'bg-slate-500 cursor-not-allowed'
             }`}
             onClick={() => {
-              if (ddxCompute.val !== undefined) {
+              if (ValidateInput()) {
                 PlotTangent();
               }
             }}
@@ -114,12 +143,12 @@ export default function Derivative({ func, setFunctions }) {
           </button>
           <button
             className={`rounded p-2 text-white ${
-              ddxCompute.val !== undefined
+              ValidateInput()
                 ? 'bg-cyan-300'
                 : 'bg-slate-500 cursor-not-allowed'
             }`}
             onClick={() => {
-              if (ddxCompute.val !== undefined) {
+              if (ValidateInput()) {
                 ComputeDDX();
               }
             }}

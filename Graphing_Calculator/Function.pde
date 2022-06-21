@@ -1,4 +1,5 @@
 class Function {
+  @Expose
   String function, id;
   color c;
   private color[] hexcodes = new color[] {#32a852, #20e8ca, #592ff5, #fa0a4a, #f5f0f1};
@@ -14,7 +15,8 @@ class Function {
     this.function = func;
     this.c = useColour();
   }
-  public Function(String func, String id) {
+ 
+   public Function(String func, String id) {
     this.function = func;
     this.c = useColour();
     this.id = id;

@@ -33,11 +33,18 @@ const FunctionSettings = ({ masterProp, func }) => {
 };
 
 export default function FunctionControl(props) {
-  const { preDefFunc = null, setFunctions, allFunctions, id, wsc } = props;
+  const {
+    preDefFunc = null,
+    setFunctions,
+    allFunctions,
+    id,
+    wsc,
+    notes,
+  } = props;
   const [plotted, setPlotted] = useState(preDefFunc !== null);
   const [func, setFunc] = useState(preDefFunc !== null ? preDefFunc : '');
   const [functionPlayGroundOpenState, setFunctionPlayGroundOpenState] =
-    useState(true);
+    useState(false);
   const sendFunction = async (task) => {
     try {
       const f = simplify(parse(func));
@@ -99,6 +106,13 @@ export default function FunctionControl(props) {
   };
   return (
     <div className='my-2 border rounded-xl p-3 border-blue-500'>
+      {notes !== 'null' && (
+        <h1 className='mb-2'>
+          <strong>Note:</strong>
+          <br />
+          {notes.replaceAll('equals', '=')}
+        </h1>
+      )}
       <div className='flex gap-2'>
         <input
           placeholder='Function'

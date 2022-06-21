@@ -55,7 +55,11 @@ export default async function handler(req, res) {
           'data/functions.json',
           JSON.stringify([
             ...curFunctions,
-            { function: body.function, id: body.id },
+            {
+              function: body.function,
+              id: body.id,
+              note: body?.note ? body.note : 'null',
+            },
           ])
         );
       } else {
@@ -65,7 +69,12 @@ export default async function handler(req, res) {
           JSON.stringify(
             curFunctions.map((f) => {
               if (f.id === body.id)
-                return { function: body.function, id: body.id };
+                return {
+                  function: body.function,
+                  id: body.id,
+                  note: body?.note ? body.note : 'null',
+                };
+
               return f;
             })
           )

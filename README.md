@@ -34,3 +34,19 @@ This will start the client, websocket server and the processing sketch
   - Right
   - Midpoint
   - Trapezoidal
+
+### Random 500 error?
+
+Head to `frontend/data/<file>.json` and make sure it contains valid JSON and you are not writing changes yourself. In this program, every data is saved, which includes points and functions. This means when you close and re-open the app, all of your previously plotted functions and points will remain.
+
+# No Node.js? No worries
+
+This program can also function without a GUI and Websocket communication protocol if Node.js is not available. You can still use the program in regular processing. However, no data will be saved since the communication and fetching protocol is available
+
+Go to `Graphing_Calculator.pde`, and turn on _debugMode_ by setting `debugMode = true;`
+
+## Create a point
+
+```java
+
+```

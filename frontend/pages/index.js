@@ -169,7 +169,6 @@ export default function Home({ data, connected }) {
   useEffect(() => {
     if (wscInstructions.length > 0) {
       client.send(wscInstructions);
-      setWSCInstructions('');
     }
     // client.send('Hello');
   }, [wscInstructions]);
@@ -222,7 +221,10 @@ export default function Home({ data, connected }) {
           <button
             className='rounded text-white bg-blue-300 p-3'
             onClick={() =>
-              setFunctions((functions) => [...functions, { id: uuidv4() }])
+              setFunctions((functions) => [
+                ...functions,
+                { id: uuidv4(), note: 'null' },
+              ])
             }
           >
             Add Function
@@ -235,6 +237,7 @@ export default function Home({ data, connected }) {
               preDefFunc={f?.function || null}
               id={f.id}
               setWSCInstructions={setWSCInstructions}
+              notes={f?.note}
             />
           ))}
         </div>

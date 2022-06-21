@@ -1,6 +1,7 @@
 import net.objecthunter.exp4j.*;
 import java.io.*;
 import java.net.*;
+import java.lang.reflect.Type;
 import java.util.*;
 import com.google.gson.*;
 import websockets.*;
@@ -9,11 +10,17 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+
+// Modifiable parameter
+final boolean debugMode = false;
+final boolean readData = true;
+
 WebsocketClient wsc;
 
 
 Axis axis = new Axis();
-Gson gson = new Gson();
+Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+
 
 Event onCommand = new Event();
 
@@ -25,22 +32,41 @@ final int websocketPort = 8000, webappPort = 3000;
 final color bg = 255;
 boolean connected = false;
 
-final boolean debugMode = false;
+
 
 void setup() {
+  Function[] nullFunctions;
+  Point[] nullPoints;
   size(800, 800);
   background(bg);
   if (debugMode) {
-    connected = true; // Assume connected
+    connected = true; // Assume connected for debug mode.
     axis.setParameters(-10, 10, -10, 10);
     axis.drawAxis();
 
-    // Initalize a test function
-    Function f = new Function("x^2", "testFunc");
-    f.graph();
-    functions.add(f);
+    //noLoop(); // No data will be dynamically loaded, turn off looping for performace. EDIT: cannot call noLoop() in order to use keyPressed()
 
-    f.plotRiemann("TRAPEZOIDAL", -3, 3, 4);
+    if (readData) {
+      // Reading file from saved data.
+      String savedFuncs = String.join(" ", loadStrings("../frontend/data/functions.json"));
+      String savedPoints = String.join(" ", loadStrings("../frontend/data/points.json"));
+
+      savedFuncs = fixFunctionString(savedFuncs);
+
+      nullFunctions = gson.fromJson(savedFuncs, Function[].class);
+      nullPoints = gson.fromJson(savedPoints, Point[].class);
+      loadData(nullFunctions, nullPoints);
+    } else {
+      // Create your own function / points & calculations here
+
+
+      // Initalize a test function
+      Function f = new Function("x^2", "testFunc");
+      f.graph();
+      functions.add(f);
+
+      f.plotRiemann("TRAPEZOIDAL", -3, 3, 4);
+    }
     return;
   }
   if (!portAvailable(websocketPort)) {
@@ -59,18 +85,32 @@ void setup() {
     Map<String, Object> dataObj = new HashMap<String, Object>();
     dataObj = (Map<String, Object>) gson.fromJson(fetchRes, dataObj.getClass());
 
-    Point[] existingPoints = gson.fromJson(dataObj.get("points").toString(), Point[].class);
-    for (Point p : existingPoints) {
-      Point p_not_null = new Point(p.x, p.y, p.id);
-      p_not_null.drawPoint();
-      points.add(p_not_null);
-    }
-    Function[] existingFunctions = gson.fromJson(dataObj.get("functions").toString(), Function[].class);
-    for (Function f : existingFunctions) {
-      Function f_nl = new Function(f.function, f.id);
-      f_nl.graph();
-      functions.add(f_nl);
-    }
+
+
+    nullPoints = gson.fromJson(dataObj.get("points").toString(), Point[].class);
+    //dataObj.get("functions").addProperty("note", "");
+    String functionsStringfied = dataObj.get("functions").toString().replace(" ", "");
+    //println(functionsStringfied);
+    nullFunctions = gson.fromJson(functionsStringfied, Function[].class);
+    loadData(nullFunctions, nullPoints);
+  }
+}
+
+void loadData(Function[] funcArr, Point[] pointsArr) {
+  // Note: funcArr and pointsArr contains null object with just primative values. We need perform a deep copy of objects
+
+  // Recreate functions arraylist
+  for (Function f : funcArr) {
+    Function f_nl = new Function(f.function, f.id);
+    f_nl.graph();
+    functions.add(f_nl);
+  }
+
+  // Recreate points arraylist
+  for (Point p : pointsArr) {
+    Point p_not_null = new Point(p.x, p.y, p.id);
+    p_not_null.drawPoint();
+    points.add(p_not_null);
   }
 }
 
@@ -84,6 +124,10 @@ void webSocketEvent(String msg) {
   catch(Exception er) {
     println("Incorrect JSON request:", msg);
   }
+}
+
+String fixFunctionString(String s) {
+  return s.replace(" ", "").replace("^", "").replace("=", "");
 }
 
 public static boolean portAvailable(int portNum) {
@@ -119,9 +163,6 @@ void keyPressed() {
     if (debugMode)
       undrawRSBlocks("testFunc");
   }
-  //for (Function f : functions) {
-  //  f.graph();
-  //}
 }
 
 void clearScreen() {
@@ -144,7 +185,7 @@ boolean funcInFunctions(Function f) {
 void redraw() {
   axis.drawAxis();
 
-  // Redra  w every point
+  // Redraw every point
   for (Point p : points) {
     p.drawPoint();
   }
@@ -165,9 +206,11 @@ void draw() {
     dataObj = (Map<String, Object>) gson.fromJson(fetchRes[0], dataObj.getClass());
 
     Point[] incomingPoints = gson.fromJson(dataObj.get("points").toString(), Point[].class);
-    Function[] incomingFunctions = gson.fromJson(dataObj.get("functions").toString(), Function[].class);
+    Function[] incomingFunctions = gson.fromJson(dataObj.get("functions").toString().replace(" ", ""), Function[].class);
 
     // Handle points
+
+    // Recreate point object and store them globally
     for (Point p : incomingPoints) {
       Point pnl = new Point(p.x, p.y, p.id);
       if (!pointInPoints(pnl)) {
@@ -176,6 +219,7 @@ void draw() {
       }
     }
 
+    // Deleting points from existing points arraylist if deleted on the backend.
     for (Iterator<Point> iterator = points.iterator(); iterator.hasNext(); ) {
       Point p = iterator.next();
       boolean exists = false;
@@ -191,6 +235,7 @@ void draw() {
       }
     }
     // Handle functions
+    // Recreate function array by adding new functions to the functions arraylist
     for (Function f : incomingFunctions) {
       Function fnl = new Function(f.function, f.id);
       if (!funcInFunctions(fnl)) {
@@ -198,7 +243,7 @@ void draw() {
         fnl.graph();
       }
     }
-
+    // Deleting existing functions if deleted on the backend
     for (Iterator<Function> iterator = functions.iterator(); iterator.hasNext(); ) {
       Function f = iterator.next();
       boolean exists = false;
@@ -216,7 +261,10 @@ void draw() {
   }
   catch (NullPointerException er) {
   }
+  catch (Exception ex) {
+  }
 
+  // Websocket event listener
   if (onCommand.fired()) {
     String eventData = onCommand.data.pop();
 
@@ -232,7 +280,6 @@ void draw() {
         int xStart = int(commands[1]), xEnd = int(commands[2]), yStart = int(commands[3]), yEnd = int(commands[4]);
         axis.setParameters(xStart, xEnd, yStart, yEnd);
       } else if (masterCmd.equals("RIEMANN")) {
-        //println(eventData);
         // Plot riemann sum blocks under the function
         String funcId = commands[1];
         String type = commands[2];
@@ -246,49 +293,11 @@ void draw() {
         }
       } else if (masterCmd.equals("DELETERIEMANN")) {
         String funcId = commands[1];
+        println(funcId);
         undrawRSBlocks(funcId);
       }
     }
 
-
     onCommand.finishEvent();
   }
 }
-
-//if (onCommand.fired()) {
-//  if (onCommand.data.size() > 0) {
-//    String data = onCommand.data.firstElement();
-//    println(data);
-//    Gson gson = new Gson();
-//    Map<String, Object> dataObj = new HashMap<String, Object>();
-//    dataObj = (Map<String, Object>) gson.fromJson(data, dataObj.getClass());
-//    String action = dataObj.get("action").toString();
-//    println(data);
-//    if (action.equals("ZOOMIN")) {
-//      axis.zoomIn();
-//    } else if (action.equals("ZOOMOUT")) {
-//      axis.zoomOut();
-//    } else if (action.equals("PLOT")) {
-//      String object = dataObj.get("object").toString();
-//      switch(object) {
-//      case "POINT":
-//        String actionData = dataObj.get("data").toString();
-//        float xVal = Float.parseFloat(actionData.split(" ")[0]);
-//        float yVal = Float.parseFloat(actionData.split(" ")[1]);
-//        String id = dataObj.get("id").toString();
-//        Point p = new Point(xVal, yVal, id);
-//        p.drawPoint();
-//        break;
-//      }
-//    } else if (action.equals("DELETE")) {
-//      String id = dataObj.get("id").toString();
-//      for (Point p : points) {
-//        if (p.id.equals(id) && p.drawn == true) {
-//          p.undraw();
-//        }
-//      }
-//    }
-//  }
-//  onCommand.data.pop();
-//  onCommand.finishEvent();
-//}

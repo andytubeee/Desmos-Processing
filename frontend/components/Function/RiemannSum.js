@@ -133,11 +133,9 @@ export default function RiemannSum({ func, funcId, setWSCInstructions }) {
         >
           Trapezoidal
         </button>
-        {res && (
-          <button className='btn-danger' onClick={ClearRS}>
-            Clear
-          </button>
-        )}
+        <button className='btn-danger' onClick={ClearRS}>
+          Clear
+        </button>
       </div>
       {res && (
         <h1>
