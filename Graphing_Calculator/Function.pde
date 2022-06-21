@@ -42,7 +42,7 @@ class Function {
       return 10e10;
     }
   }
-  public float compute(float x) {
+  public float evaluate(float x) {
     return f(x);
   }
 
@@ -54,7 +54,7 @@ class Function {
     return sum;
   }
 
-  public float computeDerivative(float x) {
+  public float evaluateDerivative(float x) {
     float h = 10e-4;
     float ddxleft = (f(x)-f(x-h))/h, ddxright = (f(x+h)-f(x))/h;
     if (abs(ddxleft-ddxright) > 10e1) {
@@ -65,7 +65,7 @@ class Function {
 
   public boolean differentiable(float x) {
     try {
-      computeDerivative(x);
+      evaluateDerivative(x);
       return true;
     }
     catch (Error er) {
@@ -77,7 +77,7 @@ class Function {
     float ddx;
     // Check if derivative exist
     try {
-      ddx = computeDerivative(c);
+      ddx = evaluateDerivative(c);
     }
     catch(Error er) {
       new ErrorMessage(er.toString()).display();
@@ -169,7 +169,7 @@ class Function {
     switch (mode) {
     case "LEFT":
       for (int i = 0; i < subdivisions; i++) {
-        float rectHeight = this.compute(start + i*dx)*yScale;
+        float rectHeight = this.evaluate(start + i*dx)*yScale;
         float rectX = rxStart+rectWidth, rectY = xAxisPos + rectHeight;
         Block rect = new Block(rxStart, xAxisPos-rectHeight, rectWidth, rectHeight, this.id, this.c);
         rect.draw();
@@ -179,7 +179,7 @@ class Function {
     case "RIGHT":
       // Right riemann sum starts with f(i+1);
       for (int i = 1; i <= subdivisions; i++) {
-        float rectHeight = this.compute(start + i*dx)*yScale; // Absolute height in pixel unit
+        float rectHeight = this.evaluate(start + i*dx)*yScale; // Absolute height in pixel unit
         float rectX = rxStart+rectWidth, rectY = xAxisPos + rectHeight;
         Block rect = new Block(rxStart, xAxisPos-rectHeight, rectWidth, rectHeight, this.id, this.c);
         rect.draw();
@@ -191,10 +191,10 @@ class Function {
       for (int i = 0; i < subdivisions; i++) {
         float[] p1 = {rxStart, xAxisPos}; // bottom left corner
         float[] p2 = {rxStart+rectWidth, xAxisPos}; // bottom right corner
-        float leftYVal = this.compute(start + i*dx);
+        float leftYVal = this.evaluate(start + i*dx);
         float leftYHeight = leftYVal * yScale;
         float[] p3 = {rxStart, xAxisPos-leftYHeight}; // top left
-        float rightYVal = this.compute(start + (i+1)*dx);
+        float rightYVal = this.evaluate(start + (i+1)*dx);
         float rightYHeight = rightYVal*yScale;
         float[] p4 ={rxStart+rectWidth, xAxisPos-rightYHeight}; // top right
         Block trap = new Block(p1, p2, p3, p4, this.id, this.c);
@@ -205,8 +205,8 @@ class Function {
       break;
     case "MIDPOINT":
       for (int i = 0; i < subdivisions; i++) {
-        float left = this.compute(start + i*dx)*yScale; // Absolute height in pixel unit
-        float right = this.compute(start + (i+1)*dx)*yScale; // Absolute height in pixel unit
+        float left = this.evaluate(start + i*dx)*yScale; // Absolute height in pixel unit
+        float right = this.evaluate(start + (i+1)*dx)*yScale; // Absolute height in pixel unit
         float rectHeight = (left+right)/2;
         float rectX = rxStart+rectWidth, rectY = xAxisPos + rectHeight;
         Block rect = new Block(rxStart, xAxisPos-rectHeight, rectWidth, rectHeight, this.id, this.c);

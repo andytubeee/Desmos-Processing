@@ -73,6 +73,7 @@ void moveAllRSBlock(String dir, float p) {
   switch (dir) {
   case "UP":
     for (ArrayList<Block> rectArr : allRSBlocks.values()) {
+      println("Going up");
       for (Block r : rectArr) {
         if (r.type.equals(RECT))
           r.y -= p;

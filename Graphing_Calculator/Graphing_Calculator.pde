@@ -194,6 +194,9 @@ void redraw() {
   for (Function f : functions) {
     f.graph();
   }
+
+  // Redraw every block
+  redrawAllRSBlocks();
 }
 
 void draw() {
@@ -293,7 +296,6 @@ void draw() {
         }
       } else if (masterCmd.equals("DELETERIEMANN")) {
         String funcId = commands[1];
-        println(funcId);
         undrawRSBlocks(funcId);
       }
     }

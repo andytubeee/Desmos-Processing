@@ -55,6 +55,7 @@ class Point {
     //    iterator.remove();
     //}
     //}
+    
   }
   public boolean equals(Point p) {
     return this.id.equals(p.id);
