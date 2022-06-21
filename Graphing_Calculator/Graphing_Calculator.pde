@@ -19,7 +19,7 @@ WebsocketClient wsc;
 
 
 Axis axis = new Axis();
-Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+Gson gson = new Gson();
 
 
 Event onCommand = new Event();
@@ -85,12 +85,8 @@ void setup() {
     Map<String, Object> dataObj = new HashMap<String, Object>();
     dataObj = (Map<String, Object>) gson.fromJson(fetchRes, dataObj.getClass());
 
-
-
     nullPoints = gson.fromJson(dataObj.get("points").toString(), Point[].class);
-    //dataObj.get("functions").addProperty("note", "");
     String functionsStringfied = dataObj.get("functions").toString().replace(" ", "");
-    //println(functionsStringfied);
     nullFunctions = gson.fromJson(functionsStringfied, Function[].class);
     loadData(nullFunctions, nullPoints);
   }
@@ -166,7 +162,7 @@ void keyPressed() {
 }
 
 void clearScreen() {
-  background(100);
+  background(bg);
 }
 
 boolean pointInPoints(Point p) {
@@ -211,7 +207,7 @@ void draw() {
     Point[] incomingPoints = gson.fromJson(dataObj.get("points").toString(), Point[].class);
     Function[] incomingFunctions = gson.fromJson(dataObj.get("functions").toString().replace(" ", ""), Function[].class);
 
-    // Handle points
+    /* Handle points */
 
     // Recreate point object and store them globally
     for (Point p : incomingPoints) {
@@ -237,7 +233,8 @@ void draw() {
         iterator.remove();
       }
     }
-    // Handle functions
+    /* Handle functions */
+
     // Recreate function array by adding new functions to the functions arraylist
     for (Function f : incomingFunctions) {
       Function fnl = new Function(f.function, f.id);
@@ -269,6 +266,7 @@ void draw() {
 
   // Websocket event listener
   if (onCommand.fired()) {
+    // Get the data attached with the event
     String eventData = onCommand.data.pop();
 
     if (eventData.equals("ZOOMIN"))

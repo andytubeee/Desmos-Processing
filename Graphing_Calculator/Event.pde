@@ -20,7 +20,7 @@ class Event {
   public void finishEvent() {
     this.fired = false;
     numsFired++;
-    //this.data.pop();
+    this.data.pop();
   }
 
 }
