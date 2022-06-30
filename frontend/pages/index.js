@@ -166,20 +166,21 @@ export default function Home({ data, connected }) {
   const [functions, setFunctions] = useState(data?.functions);
   const [settingsState, setSettingsState] = useState(false);
   const [wscInstructions, setWSCInstructions] = useState('');
+
   useEffect(() => {
     if (wscInstructions.length > 0) {
       client.send(wscInstructions);
     }
-    // client.send('Hello');
   }, [wscInstructions]);
+
   if (!connected)
     return (
       <>
         <div className='min-h-screen flex items-center justify-center'>
           <h1 className='m-3 text-center text-3xl text-red-700'>
             <span className='font-bold'>Server Error:</span> Please check the
-            websocket server is running on port <code>8000</code>, and check
-            JSON files.
+            websocket server is running on port <code>800</code>, and check JSON
+            files.
           </h1>
         </div>
       </>

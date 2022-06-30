@@ -8,7 +8,6 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Server not running' });
     return;
   }
-  const client = await new w3cwebsocket('ws://localhost:8000');
   const { body } = req;
   const { object, task } = body;
   let curPoints = fs.readFileSync('data/points.json', (err, data) => {
@@ -93,8 +92,4 @@ export default async function handler(req, res) {
     }
   }
   res.status(200).json({ success: true });
-
-  // fs.writeFile('../backend/data/points.json', 'BRUH', (err) => {
-  //   if (err) throw err;
-  // });
 }

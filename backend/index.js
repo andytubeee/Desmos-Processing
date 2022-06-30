@@ -6,7 +6,7 @@ const fs = require('fs');
 const server = http.createServer();
 const clients = {};
 server.listen(port);
-console.log('listening on port 8000');
+console.log('Listening on port ' + port);
 
 const wsServer = new websocketServer({
   httpServer: server,

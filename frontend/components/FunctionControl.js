@@ -13,7 +13,7 @@ const isComplex = (func) => {
   return COMPLEXREGEX.test(func);
 };
 
-const FunctionSettings = ({ masterProp, func }) => {
+const FunctionPlayground = ({ masterProp, func }) => {
   const {
     preDefFunc = null,
     setFunctions,
@@ -150,7 +150,7 @@ export default function FunctionControl(props) {
         </button>
       )}
       {plotted && functionPlayGroundOpenState && (
-        <FunctionSettings masterProp={props} func={func} />
+        <FunctionPlayground masterProp={props} func={func} />
       )}
     </div>
   );
