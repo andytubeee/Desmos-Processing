@@ -23,7 +23,7 @@ export default function Derivative({ func, setFunctions }) {
   const ComputeDDX = () => {
     try {
       const res = GetDerivative(func, ddxCompute.val);
-      setDdxCompute({ ...ddxCompute, res });
+      setDdxCompute({ ...ddxCompute, res, displayValue: ddxCompute.val });
     } catch (err) {
       return Swal.fire({
         title: 'Error',
@@ -62,7 +62,6 @@ export default function Derivative({ func, setFunctions }) {
       const res = GetDerivative(func, ddxCompute.val);
       const fc = f.evaluate({ x: ddxCompute.val });
 
-      // return console.log(f.evaluate({ x: ddxCompute.val }));
       if (isNaN(res.value)) {
         return Swal.fire({
           title: 'Error',
@@ -161,7 +160,7 @@ export default function Derivative({ func, setFunctions }) {
         <h1>
           f'(x) = {ddxCompute?.res.dFunc}
           <br />
-          f'({ddxCompute?.val}) = {ddxCompute?.res.value}
+          f'({ddxCompute?.displayValue}) = {ddxCompute?.res.value}
         </h1>
       )}
     </>
